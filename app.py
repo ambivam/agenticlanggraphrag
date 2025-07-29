@@ -54,4 +54,16 @@ if user_input:
         state = {"input": user_input}
         result = app.invoke(state)
         st.markdown("### 🤖 Response")
-        st.write(result["final_answer"])
+        
+        # Display results from each source in expandable sections
+        if result.get("rag_context"):
+            with st.expander("📚 Knowledge Base Results", expanded=True):
+                st.markdown(result["rag_context"])
+        
+        if result.get("sql_context"):
+            with st.expander("💾 Database Results", expanded=True):
+                st.markdown(result["sql_context"])
+        
+        if result.get("serp_context"):
+            with st.expander("🔍 Web Search Results", expanded=True):
+                st.markdown(result["serp_context"])

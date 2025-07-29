@@ -1,6 +1,7 @@
 import os
 from langchain.tools import Tool
 from serpapi import GoogleSearch
+from typing import List, Dict
 
 def get_serp_tool():
     try:
@@ -23,11 +24,17 @@ def get_serp_tool():
                 
                 # Extract organic results
                 if "organic_results" in results and results["organic_results"]:
-                    # Get first result
-                    first_result = results["organic_results"][0]
-                    snippet = first_result.get("snippet", "")
-                    if snippet:
-                        return snippet
+                    # Get top 3 results
+                    search_results = []
+                    for result in results["organic_results"][:3]:
+                        title = result.get("title", "")
+                        snippet = result.get("snippet", "")
+                        link = result.get("link", "")
+                        if snippet:
+                            search_results.append(f"Source: {title}\nSummary: {snippet}\nLink: {link}\n")
+                    
+                    if search_results:
+                        return "\n\n".join(search_results)
                 return None
             except Exception as e:
                 print(f"Error in SerpAPI search: {str(e)}")
