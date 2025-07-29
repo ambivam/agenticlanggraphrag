@@ -14,11 +14,31 @@ st.caption("Upload PDF or text files to add to the chatbot's knowledge base")
 uploaded_files = st.file_uploader(
     "Choose files",
     accept_multiple_files=True,
-    type=["pdf", "txt"],
-    help="Upload PDF or text files to enhance the chatbot's knowledge"
+    type=["pdf", "txt", "docx", "xlsx", "xls", "csv", "pptx", "md", "json"],
+    help="Upload knowledge base documents (PDF, TXT, Word, Excel, CSV, PowerPoint, Markdown, or JSON)"
 )
 
+# Show supported formats and size limit
+st.markdown("""
+    #### Supported Formats:
+    - Documents: PDF (.pdf), Text (.txt), Word (.docx)
+    - Data Files: Excel (.xlsx, .xls), CSV (.csv)
+    - Presentations: PowerPoint (.pptx)
+    - Other: Markdown (.md), JSON (.json)
+    
+    **Size Limit:** 200MB per file
+""")
+
 if uploaded_files:
+    for uploaded_file in uploaded_files:
+        # Create data directory if it doesn't exist
+        os.makedirs("data", exist_ok=True)
+        
+        # Save uploaded file to data directory
+        file_path = os.path.join("data", uploaded_file.name)
+        with open(file_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+
     if st.button("Process Files"):
         with st.spinner("Processing files..."):
             # Save uploaded files temporarily

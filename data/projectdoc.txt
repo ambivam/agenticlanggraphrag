@@ -1,0 +1,168 @@
+# Customer Case Management System Documentation
+
+## Project Overview
+The Customer Case Management System is a full-stack web application designed to manage and track customer cases, support requests, and related documentation. The system provides a platform for both customers to submit cases and analysts to manage and resolve them.
+
+## Technical Stack
+
+### Backend
+- Database: SQLite with Prisma ORM
+- File Storage: Local file system for document storage
+- Authentication: Built-in authentication system for users and analysts
+
+### Frontend
+- Framework: React with TypeScript
+- UI Components: Custom UI components with modern design
+- State Management: React hooks for local state management
+- Date Handling: date-fns library
+- Icons: Lucide icons
+- Notifications: Sonner toast notifications
+
+## Database Schema
+
+### Models
+
+1. User
+   - Fields: id, email, name, password, createdAt, updatedAt
+   - Relations: One-to-many with Cases
+
+2. Analyst
+   - Fields: id, email, name, password, createdAt, updatedAt
+   - Relations: 
+     - One-to-many with Cases (assigned cases)
+     - One-to-many with CaseUpdates
+
+3. Case
+   - Fields:
+     - Basic Info: id, title, description, email, category, status, priority, dueDate
+     - Timestamps: createdAt, updatedAt
+     - Dynamic Fields:
+       - nameChange
+       - addressChange
+       - addNewBranch
+       - addNewAccount
+       - addNewEmployee
+       - addNewCompany
+   - Relations:
+     - Belongs to User
+     - Belongs to Analyst (optional)
+     - One-to-many with Documents
+     - One-to-many with CaseUpdates
+
+4. Document
+   - Fields: id, filename, filepath, mimetype, size, createdAt
+   - Relations: Belongs to Case
+
+5. CaseUpdate
+   - Fields: id, message, createdAt
+   - Relations:
+     - Belongs to Case
+     - Belongs to Analyst
+
+## Case Management Features
+
+### Case Categories
+- CUSTOMER
+- MERCHANT
+- COMMERCIAL
+
+### Case Statuses
+- OPEN (default)
+- IN_PROGRESS
+- PENDING
+- RESOLVED
+- CLOSED
+
+### Priority Levels
+- LOW
+- MEDIUM
+- HIGH
+- CRITICAL
+
+## Key Components
+
+### Analyst Case Management
+Location: app/components/analyst-case-management.tsx
+
+Features:
+1. Case Listing
+   - Filter cases by category
+   - Real-time updates
+   - Case cards with detailed information
+
+2. Case Updates
+   - Add notes and updates to cases
+   - Track update history with timestamps
+   - Analyst attribution for updates
+
+3. Case Management
+   - Update case status
+   - Set/modify priority
+   - Assign due dates
+   - View and manage case documents
+   - Handle dynamic fields based on case category
+
+4. Document Management
+   - View attached documents
+   - Download functionality
+   - File metadata tracking
+
+### User Interface
+- Modern, responsive design
+- Card-based layout for cases
+- Dialog-based forms for updates
+- Color-coded status and priority indicators
+- Interactive elements for email and document handling
+
+## API Endpoints
+
+1. Case Management
+   - GET /api/cases - List all cases
+   - GET /api/cases?category={category} - Filter cases by category
+   - PUT /api/cases/{id} - Update case details
+   - POST /api/cases/{id}/updates - Add case updates
+
+## Security Features
+- JWT-based authentication
+- Password hashing for user/analyst accounts
+- Role-based access control (Users vs Analysts)
+- Secure file upload handling
+
+## Data Validation
+- Required fields validation
+- Status and priority value validation
+- File type and size validation for documents
+- Email format validation
+
+## Error Handling
+- Toast notifications for user feedback
+- Error state management in forms
+- API error handling and user feedback
+- Loading states for async operations
+
+## Best Practices
+1. TypeScript for type safety
+2. React hooks for state management
+3. Modular component architecture
+4. Consistent error handling
+5. Responsive design principles
+6. Progressive enhancement
+7. Accessibility considerations
+
+## Development Guidelines
+1. Use TypeScript for all new components
+2. Follow the existing component structure
+3. Implement proper error handling
+4. Add appropriate loading states
+5. Include type definitions for all props
+6. Document new features and API endpoints
+7. Test all new functionality thoroughly
+
+## Future Considerations
+1. Implement real-time updates using WebSocket
+2. Add advanced search and filtering
+3. Implement bulk actions for cases
+4. Add reporting and analytics
+5. Enhance document management features
+6. Add case templates for common scenarios
+7. Implement SLA tracking

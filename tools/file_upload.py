@@ -1,9 +1,15 @@
 import os
-from typing import List, Tuple
-from langchain_community.document_loaders import TextLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.document_loaders import PyPDFLoader, TextLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+import os
+import sys
+from typing import List, Tuple
+
+# Add parent directory to Python path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from ingest.file_handlers import get_document_loader
 
 def load_pdf(file_path: str) -> List[str]:
     """Load a PDF file using PyPDF2."""
@@ -43,7 +49,12 @@ def process_file(file_path: str) -> List[str]:
             loader = TextLoader(file_path)
             documents = loader.load()
         else:
-            raise ValueError(f"Unsupported file type: {ext}")
+            # Try custom handlers for other file types
+            handler = get_document_loader(file_path)
+            if handler:
+                documents = handler(file_path)
+            else:
+                raise ValueError(f"Unsupported file type: {ext}")
         
         # Split documents into chunks
         text_splitter = RecursiveCharacterTextSplitter(
@@ -56,36 +67,65 @@ def process_file(file_path: str) -> List[str]:
         raise
 
 def update_faiss_index(file_paths: List[str]) -> Tuple[int, str]:
-    """Update FAISS index with new documents.
-    Returns: (number of chunks added, status message)
-    """
+    """Update FAISS index with new documents."""
     try:
+        # Initialize embeddings and text splitter
+        embeddings = OpenAIEmbeddings()
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=200,
+            length_function=len,
+            separators=["\n\n", "\n", " ", ""]
+        )
+        
+        # Process documents
+        docs = []
+        for file_path in file_paths:
+            try:
+                # Load document based on type
+                if file_path.endswith('.pdf'):
+                    loader = PyPDFLoader(file_path)
+                    loaded_docs = loader.load()
+                elif file_path.endswith('.txt'):
+                    loader = TextLoader(file_path)
+                    loaded_docs = loader.load()
+                else:
+                    # Try custom handlers for other file types
+                    handler = get_document_loader(file_path)
+                    if handler:
+                        loaded_docs = handler(file_path)
+                    else:
+                        print(f"Unsupported file type: {file_path}")
+                        continue
+                
+                # Split documents into chunks
+                if loaded_docs:
+                    split_docs = text_splitter.split_documents(loaded_docs)
+                    docs.extend(split_docs)
+                    print(f"Processed {os.path.basename(file_path)} into {len(split_docs)} chunks")
+                
+            except Exception as e:
+                print(f"Error processing {file_path}: {str(e)}")
+                continue
+        
+        if not docs:
+            return 0, "No valid documents were processed."
+        
+        # Update or create FAISS index
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         faiss_dir = os.path.join(base_dir, "faiss_index")
         
-        # Process all files
-        all_chunks = []
-        for file_path in file_paths:
-            chunks = process_file(file_path)
-            all_chunks.extend(chunks)
-        
-        if not all_chunks:
-            return 0, "No content found in the uploaded files."
-        
-        # Create embeddings
-        embeddings = OpenAIEmbeddings()
-        
-        # Load existing index if it exists, otherwise create new
         if os.path.exists(faiss_dir):
             db = FAISS.load_local(faiss_dir, embeddings, allow_dangerous_deserialization=True)
-            db.add_documents(all_chunks)
+            db.add_documents(docs)
+            db.save_local(faiss_dir)
+            return len(docs), "Successfully updated knowledge base."
         else:
-            db = FAISS.from_documents(all_chunks, embeddings)
             os.makedirs(faiss_dir, exist_ok=True)
-        
-        # Save updated index
-        db.save_local(faiss_dir)
-        
-        return len(all_chunks), "Successfully added to the knowledge base."
+            vectorstore = FAISS.from_documents(docs, embeddings)
+            vectorstore.save_local(faiss_dir)
+            return len(docs), "Successfully created knowledge base."
+            
     except Exception as e:
-        return 0, f"Error updating index: {str(e)}"
+        print(f"Error updating FAISS index: {str(e)}")
+        return 0, f"Error: {str(e)}"
