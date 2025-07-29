@@ -32,8 +32,8 @@ wheels/
 *.swo
 
 # Project specific
-faiss_index/
-data/
+# faiss_index/
+# data/
 *.db
 
 # Logs

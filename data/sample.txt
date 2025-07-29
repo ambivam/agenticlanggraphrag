@@ -1,0 +1,8 @@
+This is a sample document for the MCP chatbot.
+        The chatbot uses multiple sources to answer questions:
+        1. RAG (Retrieval Augmented Generation) with FAISS
+        2. MySQL database queries
+        3. Web search using SerpAPI
+        
+        The system tries each source in sequence until it finds a good answer.
+        
