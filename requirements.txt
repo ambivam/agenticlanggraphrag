@@ -1,0 +1,14 @@
+langchain
+langchain-community
+langchain-openai
+langgraph
+faiss-cpu
+openai
+streamlit
+python-dotenv
+pymysql
+google-search-results
+python-magic-bin
+unstructured
+pdfminer.six
+pypdf
