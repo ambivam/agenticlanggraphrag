@@ -1,12 +1,17 @@
-from typing import Optional
+from typing import Optional, List
 from jira import JIRA
 import os
 from dotenv import load_dotenv
 import traceback
+import re
 
 load_dotenv()
 
+__all__ = ['jira_config', 'search_jira_issues']
+
 class JiraConfig:
+    """Configuration class for JIRA integration."""
+    
     def __init__(self):
         self.server = None
         self.username = None
@@ -14,7 +19,8 @@ class JiraConfig:
         self.project_key = None
         self.is_enabled = False
 
-    def configure(self, server: str, username: str, api_token: str, project_key: str):
+    def configure(self, server: str, username: str, api_token: str, project_key: str) -> None:
+        """Configure JIRA connection parameters."""
         print(f"[DEBUG] Configuring JIRA with:")
         print(f"[DEBUG] Server: {server}")
         print(f"[DEBUG] Username: {username}")
@@ -28,6 +34,7 @@ class JiraConfig:
         print("[DEBUG] JIRA configuration completed")
 
     def is_configured(self) -> bool:
+        """Check if all required configuration is present."""
         return all([
             self.server,
             self.username,
@@ -38,7 +45,8 @@ class JiraConfig:
 
 jira_config = JiraConfig()
 
-def get_jira_tool():
+def get_jira_tool() -> Optional[JIRA]:
+    """Initialize and return JIRA client if configuration is valid."""
     print("[DEBUG] Checking JIRA configuration...")
     print(f"[DEBUG] Server: {jira_config.server}")
     print(f"[DEBUG] Username: {jira_config.username}")
@@ -67,9 +75,50 @@ def get_jira_tool():
         traceback.print_exc()
         return None
 
+def extract_jira_keys(text: str, project_key: str) -> List[str]:
+    """Extract JIRA issue keys from text."""
+    # Pattern matches PROJECT-123 format, allowing for comma/space separation
+    pattern = fr'{project_key}-\d+'
+    matches = re.findall(pattern, text)
+    return list(set(matches))  # Remove duplicates
+
+def clean_natural_language(query: str) -> str:
+    """Clean natural language query by removing common JIRA-related phrases."""
+    phrases_to_remove = [
+        'jira issue',
+        'jira ticket',
+        'please specify info about',
+        'information about',
+        'tell me about',
+        'what is',
+        'show me',
+        'find',
+        'search for',
+    ]
+    
+    # Case-insensitive removal of phrases
+    clean_query = query.lower()
+    for phrase in phrases_to_remove:
+        clean_query = clean_query.replace(phrase.lower(), '')
+    
+    # Remove extra whitespace and commas
+    clean_query = re.sub(r'\s+', ' ', clean_query)
+    clean_query = clean_query.strip(' ,')
+    
+    return clean_query
+
 def search_jira_issues(query: str) -> Optional[str]:
+    """Search for JIRA issues by issue key or text search.
+    
+    Args:
+        query: The search query, can be natural language or issue key(s)
+        
+    Returns:
+        Formatted string with issue details or None if no results found
+    """
     print(f"[DEBUG] JIRA Search - Query: {query}")
     print(f"[DEBUG] JIRA Config Status: {jira_config.is_configured()}")
+    
     if not jira_config.is_configured():
         print("[DEBUG] JIRA not configured")
         return None
@@ -80,22 +129,21 @@ def search_jira_issues(query: str) -> Optional[str]:
             print("[DEBUG] Failed to get JIRA tool")
             return None
             
-        # Search for issues in the configured project
-        # Parse multiple issue keys if present
-        issue_keys = [key.strip() for key in query.split(',')]
+        # Extract JIRA issue keys from the query
+        issue_keys = extract_jira_keys(query, jira_config.project_key)
+        print(f"[DEBUG] Extracted issue keys: {issue_keys}")
         
-        # Check if all items look like JIRA keys
-        all_keys_valid = all(key.strip().startswith(jira_config.project_key + '-') for key in issue_keys)
-        
-        if all_keys_valid:
-            # If all items are issue keys, search by multiple keys
-            keys_clause = ' OR '.join(f'key = "{key.strip()}"' for key in issue_keys)
+        # If no issue keys found, try text search
+        if not issue_keys:
+            # Remove common JIRA-related phrases to clean the query
+            clean_query = clean_natural_language(query)
+            jql = f'project = {jira_config.project_key} AND text ~ "{clean_query}"'
+            print(f"[DEBUG] No issue keys found, performing text search: {clean_query}")
+        else:
+            # Search by issue keys
+            keys_clause = ' OR '.join(f'key = "{key}"' for key in issue_keys)
             jql = f'({keys_clause})'
             print(f"[DEBUG] Searching by issue keys: {issue_keys}")
-        else:
-            # Otherwise do a text search
-            jql = f'project = {jira_config.project_key} AND text ~ "{query}"'
-            print(f"[DEBUG] Performing text search: {query}")
             
         print(f"[DEBUG] JIRA JQL: {jql}")
         issues = jira.search_issues(jql, maxResults=5)
@@ -118,7 +166,7 @@ def search_jira_issues(query: str) -> Optional[str]:
                 f"**Status:** {issue.fields.status.name}  |  **Assignee:** {assignee_name}\n"
                 f"**Description:**\n{issue.fields.description or 'No description'}\n"
             )
-            
+        
         if len(issues) > 1:
             response = f"Found {len(issues)} JIRA issues:\n\n" + "\n\n".join(results)
         else:
@@ -132,3 +180,6 @@ def search_jira_issues(query: str) -> Optional[str]:
         print("[DEBUG] Full traceback:")
         traceback.print_exc()
         return None
+
+# Initialize global JIRA config
+jira_config = JiraConfig()
