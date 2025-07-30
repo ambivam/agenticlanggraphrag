@@ -81,13 +81,21 @@ def search_jira_issues(query: str) -> Optional[str]:
             return None
             
         # Search for issues in the configured project
-        # Use text~ for fuzzy text search and key= for exact issue key
-        if query.startswith(jira_config.project_key + "-"):
-            # If query looks like an issue key (e.g., ES-3718), search by key
-            jql = f'key = "{query}"'
+        # Parse multiple issue keys if present
+        issue_keys = [key.strip() for key in query.split(',')]
+        
+        # Check if all items look like JIRA keys
+        all_keys_valid = all(key.strip().startswith(jira_config.project_key + '-') for key in issue_keys)
+        
+        if all_keys_valid:
+            # If all items are issue keys, search by multiple keys
+            keys_clause = ' OR '.join(f'key = "{key.strip()}"' for key in issue_keys)
+            jql = f'({keys_clause})'
+            print(f"[DEBUG] Searching by issue keys: {issue_keys}")
         else:
             # Otherwise do a text search
             jql = f'project = {jira_config.project_key} AND text ~ "{query}"'
+            print(f"[DEBUG] Performing text search: {query}")
             
         print(f"[DEBUG] JIRA JQL: {jql}")
         issues = jira.search_issues(jql, maxResults=5)
@@ -100,13 +108,22 @@ def search_jira_issues(query: str) -> Optional[str]:
         # Format results
         results = []
         for issue in issues:
+            # Get assignee info if available
+            assignee = getattr(issue.fields, 'assignee', None)
+            assignee_name = assignee.displayName if assignee else 'Unassigned'
+            
+            # Format the issue details
             results.append(
-                f"- {issue.key}: {issue.fields.summary}\n"
-                f"  Status: {issue.fields.status.name}\n"
-                f"  Description: {issue.fields.description or 'No description'}\n"
+                f"### {issue.key}: {issue.fields.summary}\n"
+                f"**Status:** {issue.fields.status.name}  |  **Assignee:** {assignee_name}\n"
+                f"**Description:**\n{issue.fields.description or 'No description'}\n"
             )
             
-        response = "\n".join(results)
+        if len(issues) > 1:
+            response = f"Found {len(issues)} JIRA issues:\n\n" + "\n\n".join(results)
+        else:
+            response = "\n".join(results)
+            
         print(f"[DEBUG] JIRA search response:\n{response}")
         return response
         
