@@ -5,6 +5,7 @@ from typing import TypedDict, Optional
 from tools.rag_tool import get_rag_chain
 from tools.mysql_tool import get_mysql_agent
 from tools.serpapi_tool import get_serp_tool
+from tools.jira_tool import search_jira_issues, jira_config
 
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
@@ -18,6 +19,7 @@ class ChatState(TypedDict, total=False):
     rag_context: Optional[str]
     sql_context: Optional[str]
     serp_context: Optional[str]
+    jira_context: Optional[str]
     final_answer: Optional[str]
     found: bool
 
@@ -102,6 +104,32 @@ def serp_node(state: ChatState) -> ChatState:
         state["found"] = False
     return state
 
+def jira_node(state: ChatState) -> ChatState:
+    # Initialize state fields if not present
+    if "jira_context" not in state:
+        state["jira_context"] = None
+    if "found" not in state:
+        state["found"] = False
+        
+    if not jira_config.is_configured():
+        state["jira_context"] = None
+        state["found"] = False
+        return state
+        
+    try:
+        response = search_jira_issues(state["input"])
+        if response:  # Only set context if we got a valid response
+            state["jira_context"] = response
+            state["found"] = True
+        else:
+            state["jira_context"] = None
+            state["found"] = False
+    except Exception as e:
+        print(f"JIRA Error: {str(e)}")
+        state["jira_context"] = None
+        state["found"] = False
+    return state
+
 def final_answer_node(state: ChatState) -> ChatState:
     # Initialize final answer
     state['final_answer'] = ""
@@ -118,6 +146,10 @@ def final_answer_node(state: ChatState) -> ChatState:
     # Check web search result
     if state.get('serp_context') and state.get('serp_context') != 'None':
         sources.append(f"From web search: {state['serp_context']}")
+        
+    # Check JIRA result
+    if state.get('jira_context') and state.get('jira_context') != 'None':
+        sources.append(f"From JIRA: {state['jira_context']}")
     
     # Combine all found sources
     if sources:
@@ -137,10 +169,11 @@ graph.set_entry_point("RAG")
 graph.add_node("RAG", rag_node)
 graph.add_node("MySQL", mysql_node)
 graph.add_node("WebSearch", serp_node)
+graph.add_node("JIRA", jira_node)
 graph.add_node("Answer", final_answer_node)
 
 # Define edges for sequential flow:
-# RAG -> MySQL -> WebSearch -> Answer
+# RAG -> MySQL -> WebSearch -> [JIRA] -> Answer
 
 # After RAG, always try MySQL next
 graph.add_edge("RAG", "MySQL")
@@ -148,8 +181,18 @@ graph.add_edge("RAG", "MySQL")
 # After MySQL, always try WebSearch next
 graph.add_edge("MySQL", "WebSearch")
 
-# After WebSearch, go to final answer
-graph.add_edge("WebSearch", "Answer")
+# After WebSearch, conditionally go to JIRA or Answer
+def should_use_jira(state: ChatState) -> bool:
+    return jira_config.is_configured()
+
+graph.add_conditional_edges(
+    "WebSearch",
+    should_use_jira,
+    {True: "JIRA", False: "Answer"}
+)
+
+# After JIRA, go to final answer
+graph.add_edge("JIRA", "Answer")
 
 # Set finish point
 graph.set_finish_point("Answer")

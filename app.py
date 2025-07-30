@@ -3,6 +3,7 @@ import os
 import tempfile
 from langgraph_mcp_bot import app
 from tools.file_upload import update_faiss_index
+from tools.jira_tool import jira_config
 
 st.set_page_config(page_title="MCP Chatbot", page_icon="🤖")
 st.title("🧠 LangGraph MCP Chatbot")
@@ -63,9 +64,39 @@ if uploaded_files:
 # Divider
 st.markdown("---")
 
+# JIRA Configuration
+st.markdown("### 🔧 JIRA Configuration")
+jira_enabled = st.checkbox("Enable JIRA Integration", value=False)
+
+if jira_enabled:
+    with st.expander("JIRA Settings", expanded=True):
+        jira_server = st.text_input("JIRA Server URL", placeholder="https://your-domain.atlassian.net")
+        jira_username = st.text_input("JIRA Username/Email")
+        jira_api_token = st.text_input("JIRA API Token", type="password")
+        jira_project = st.text_input("JIRA Project Key", placeholder="e.g., PROJ")
+        
+        if st.button("Save JIRA Configuration"):
+            if all([jira_server, jira_username, jira_api_token, jira_project]):
+                jira_config.configure(
+                    server=jira_server,
+                    username=jira_username,
+                    api_token=jira_api_token,
+                    project_key=jira_project
+                )
+                st.success("✅ JIRA configuration saved!")
+            else:
+                st.error("❌ Please fill in all JIRA configuration fields")
+else:
+    jira_config.is_enabled = False
+
+st.markdown("---")
+
 # Chat section
 st.markdown("### 💬 Chat")
-st.caption("Order of sources: RAG ➜ MySQL ➜ Web Search (SerpAPI)")
+if jira_enabled and jira_config.is_configured():
+    st.caption("Order of sources: RAG ➜ MySQL ➜ Web Search (SerpAPI) ➜ JIRA")
+else:
+    st.caption("Order of sources: RAG ➜ MySQL ➜ Web Search (SerpAPI)")
 
 user_input = st.text_input("Enter your question:")
 
@@ -87,3 +118,7 @@ if user_input:
         if result.get("serp_context"):
             with st.expander("🔍 Web Search Results", expanded=True):
                 st.markdown(result["serp_context"])
+                
+        if result.get("jira_context"):
+            with st.expander("🎫 JIRA Results", expanded=True):
+                st.markdown(result["jira_context"])
