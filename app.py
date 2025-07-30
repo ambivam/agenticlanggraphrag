@@ -64,14 +64,37 @@ if uploaded_files:
 st.markdown("---")
 
 # Chat section
+# JIRA Configuration
+use_jira = st.sidebar.checkbox('Enable JIRA Integration', value=False)
+
+if use_jira:
+    st.sidebar.markdown("### JIRA Configuration")
+    jira_server = st.sidebar.text_input("JIRA Server URL", placeholder="https://your-domain.atlassian.net")
+    jira_email = st.sidebar.text_input("JIRA Email")
+    jira_token = st.sidebar.text_input("JIRA API Token", type="password")
+    
+    # Save JIRA config to session state
+    if jira_server and jira_email and jira_token:
+        st.session_state['jira_config'] = {
+            'server': jira_server,
+            'email': jira_email,
+            'token': jira_token
+        }
+    else:
+        st.sidebar.warning("Please fill in all JIRA configuration fields")
+
 st.markdown("### 💬 Chat")
-st.caption("Order of sources: RAG ➜ MySQL ➜ Web Search (SerpAPI)")
+st.caption("Order of sources: RAG ➜ MySQL ➜ Web Search (SerpAPI)" + (" ➜ JIRA" if use_jira else ""))
 
 user_input = st.text_input("Enter your question:")
 
 if user_input:
     with st.spinner("Searching..."):
-        state = {"input": user_input}
+        state = {
+            "input": user_input,
+            "use_jira": use_jira,
+            "jira_config": st.session_state.get('jira_config', {}) if use_jira else None
+        }
         result = app.invoke(state)
         st.markdown("### 🤖 Response")
         
@@ -87,3 +110,7 @@ if user_input:
         if result.get("serp_context"):
             with st.expander("🔍 Web Search Results", expanded=True):
                 st.markdown(result["serp_context"])
+        
+        if result.get("jira_context"):
+            with st.expander("🎯 JIRA Results", expanded=True):
+                st.markdown(result["jira_context"])

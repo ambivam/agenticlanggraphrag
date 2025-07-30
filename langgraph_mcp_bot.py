@@ -18,8 +18,11 @@ class ChatState(TypedDict, total=False):
     rag_context: Optional[str]
     sql_context: Optional[str]
     serp_context: Optional[str]
+    jira_context: Optional[str]
     final_answer: Optional[str]
     found: bool
+    use_jira: bool
+    jira_config: Optional[dict]
 
 # Initialize tools
 rag_chain = get_rag_chain()
@@ -36,6 +39,8 @@ def rag_node(state: ChatState) -> ChatState:
         state["sql_context"] = None
     if "serp_context" not in state:
         state["serp_context"] = None
+    if "jira_context" not in state:
+        state["jira_context"] = None
     if "final_answer" not in state:
         state["final_answer"] = None
         
@@ -82,7 +87,7 @@ def mysql_node(state: ChatState) -> ChatState:
         state["found"] = False
     return state
 
-def serp_node(state: ChatState) -> ChatState:
+def process_serp(state: ChatState) -> ChatState:
     if not serp_tool:  # If tool wasn't created successfully
         state["serp_context"] = None
         state["found"] = False
@@ -102,6 +107,37 @@ def serp_node(state: ChatState) -> ChatState:
         state["found"] = False
     return state
 
+def process_jira(state: ChatState) -> ChatState:
+    if not state.get("use_jira") or not state.get("jira_config"):
+        state["jira_context"] = None
+        return state
+    
+    query = state["input"]
+    config = state["jira_config"]
+    
+    try:
+        if not all(k in config for k in ['server', 'email', 'token']):
+            state["jira_context"] = "Error: Missing JIRA configuration"
+            return state
+        
+        # Import JIRA tool only when needed
+        from tools.jira_tool import get_jira_tool
+            
+        jira_tool = get_jira_tool(
+            server=config['server'],
+            username=config['email'],
+            api_token=config['token']
+        )
+        
+        if jira_tool:
+            jira_context = jira_tool.run(query)
+            state["jira_context"] = jira_context
+        else:
+            state["jira_context"] = "Error: Could not initialize JIRA tool"
+    except Exception as e:
+        state["jira_context"] = f"Error in JIRA search: {str(e)}"
+    return state
+
 def final_answer_node(state: ChatState) -> ChatState:
     # Initialize final answer
     state['final_answer'] = ""
@@ -119,11 +155,15 @@ def final_answer_node(state: ChatState) -> ChatState:
     if state.get('serp_context') and state.get('serp_context') != 'None':
         sources.append(f"From web search: {state['serp_context']}")
     
+    # Check JIRA result
+    if state.get('jira_context') and state.get('jira_context') != 'None':
+        sources.append(f"From JIRA: {state['jira_context']}")
+    
     # Combine all found sources
     if sources:
         state['final_answer'] = "\n".join(sources)
     else:
-        state['final_answer'] = "I could not find relevant information from any of the available sources (knowledge base, database, or web search)."
+        state['final_answer'] = "I could not find relevant information from any of the available sources (knowledge base, database, web search, or JIRA)."
     
     return state
 
@@ -136,11 +176,12 @@ graph.set_entry_point("RAG")
 # Add nodes
 graph.add_node("RAG", rag_node)
 graph.add_node("MySQL", mysql_node)
-graph.add_node("WebSearch", serp_node)
+graph.add_node("WebSearch", process_serp)
+graph.add_node("JIRA", process_jira)
 graph.add_node("Answer", final_answer_node)
 
 # Define edges for sequential flow:
-# RAG -> MySQL -> WebSearch -> Answer
+# RAG -> MySQL -> WebSearch -> JIRA -> Answer
 
 # After RAG, always try MySQL next
 graph.add_edge("RAG", "MySQL")
@@ -148,8 +189,11 @@ graph.add_edge("RAG", "MySQL")
 # After MySQL, always try WebSearch next
 graph.add_edge("MySQL", "WebSearch")
 
-# After WebSearch, go to final answer
-graph.add_edge("WebSearch", "Answer")
+# After WebSearch, try JIRA next
+graph.add_edge("WebSearch", "JIRA")
+
+# After JIRA, go to final answer
+graph.add_edge("JIRA", "Answer")
 
 # Set finish point
 graph.set_finish_point("Answer")
