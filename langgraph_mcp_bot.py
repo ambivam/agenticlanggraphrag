@@ -138,16 +138,18 @@ def test_case_node(state: ChatState) -> ChatState:
         state["test_cases"] = None
         
     if state.get("jira_context"):
-        # Get parameters from state or use defaults
-        temperature = state.get("llm_temperature", 0.7)
-        scenarios_count = state.get("scenarios_per_category", 10)
+        # Check if this is a continuation request
+        continue_previous = False
+        query = state.get("query", "").lower()
+        if any(x in query for x in ["more", "additional", "continue", "generate more"]):
+            continue_previous = True
         
         state["test_cases"] = generate_test_cases(
             jira_content=state["jira_context"],
-            temperature=temperature,
-            scenarios_per_category=scenarios_count
+            temperature=state.get("llm_temperature", 0.7),
+            scenarios_per_category=state.get("scenarios_per_category", 10),
+            continue_previous=continue_previous
         )
-    
     return state
 
 def final_answer_node(state: ChatState) -> ChatState:

@@ -8,6 +8,10 @@ from tools.jira_tool import jira_config
 st.set_page_config(page_title="MCP Chatbot", page_icon="🤖")
 st.title("🧠 LangGraph MCP Chatbot")
 
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
 # File upload section
 st.markdown("### 📚 Upload Knowledge Base")
 st.caption("Upload PDF or text files to add to the chatbot's knowledge base")
@@ -103,50 +107,51 @@ st.markdown("---")
 st.markdown("### 💬 Chat")
 st.caption("Order of sources: RAG ➜ MySQL ➜ Web Search (SerpAPI) ➜ JIRA")
 
-# Search input and button in columns for better layout
-col1, col2 = st.columns([4, 1])
-with col1:
-    user_input = st.text_input("Enter your question:", key="search_input")
-with col2:
-    search_button = st.button("🔍 Search", type="primary", use_container_width=True)
+# Display chat history
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"], unsafe_allow_html=True)
 
-# Only execute search when button is clicked and input is not empty
-if search_button and user_input:
-    with st.spinner("Searching..."):
-        # Set JIRA project key if provided
-        if jira_project:
-            jira_config.set_project_key(jira_project)
+# Chat input
+if user_question := st.chat_input("Ask your question here..."):
+    # Set JIRA project key if provided
+    if jira_project:
+        jira_config.set_project_key(jira_project)
+    
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": user_question})
+    
+    # Display user message
+    with st.chat_message("user"):
+        st.write(user_question)
+    
+    # Get bot response
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            # Check if this is a test case generation request
+            is_test_case_request = any(x in user_question.lower() for x in [
+                "generate test", "bdd", "gherkin", "scenario", "test case"
+            ])
             
-        # Update state with project key, temperature, and test cases count
-        state = {
-            "input": user_input,
-            "llm_temperature": llm_temperature,
-            "scenarios_per_category": scenarios_per_category
-        }
-        
-        result = app.invoke(state)
-        st.markdown("### 🤖 Response")
-        
-        # Display results from each source in expandable sections
-        if result.get("rag_context"):
-            with st.expander("📚 Knowledge Base Results", expanded=True):
-                st.markdown(result["rag_context"])
-        
-        if result.get("sql_context"):
-            with st.expander("💾 Database Results", expanded=True):
-                st.markdown(result["sql_context"])
-        
-        if result.get("serp_context"):
-            with st.expander("🔍 Web Search Results", expanded=True):
-                st.markdown(result["serp_context"])
-                
-        if result.get("jira_context"):
-            with st.expander("🎫 JIRA Results", expanded=True):
-                st.markdown(result["jira_context"])
-                
-        if result.get("test_cases"):
-            with st.expander("🧪 Test Cases", expanded=True):
-                st.markdown(result["test_cases"], unsafe_allow_html=True)
-
-elif search_button and not user_input:
-    st.error("⚠️ Please enter a question before searching")
+            # Check if this is a continuation request
+            continue_previous = any(x in user_question.lower() for x in [
+                "more", "additional", "continue", "generate more"
+            ])
+            
+            # Invoke the LangGraph app with appropriate state
+            response = app.invoke({
+                "input": user_question,
+                "query": user_question,  # Used by test_case_node
+                "continue_previous": continue_previous if is_test_case_request else False,
+                "llm_temperature": llm_temperature,
+                "scenarios_per_category": scenarios_per_category
+            })
+            
+            # Extract the final answer
+            answer = response.get("final_answer", "I'm sorry, I couldn't process your request.")
+            
+            # Display the response
+            st.markdown(answer, unsafe_allow_html=True)
+            
+            # Add assistant's response to chat history
+            st.session_state.messages.append({"role": "assistant", "content": answer})

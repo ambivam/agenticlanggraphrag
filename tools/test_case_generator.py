@@ -6,10 +6,16 @@ import traceback
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import BaseMessage
+from langchain.memory import ConversationBufferMemory
 from dotenv import load_dotenv
-import re
 
 load_dotenv()
+
+# Initialize conversation memory
+test_case_memory = ConversationBufferMemory(
+    memory_key="chat_history",
+    return_messages=True
+)
 
 # Get OpenAI API key from environment
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -179,6 +185,137 @@ And [validations for specific criteria]
 
 Provide specific examples and test data where relevant. Include boundary values, equivalence classes, and realistic test data that matches the business context."""
 
+def format_test_cases(issue: Dict[str, str], content: str, scenarios_per_category: int) -> str:
+    """Format test cases with HTML and Gherkin syntax highlighting.
+    
+    Args:
+        issue: Dictionary containing JIRA issue details
+        content: Raw test case content from LLM
+        scenarios_per_category: Number of scenarios per category
+        
+    Returns:
+        str: Formatted HTML content with test cases
+    """
+    # Add JIRA issue details section first
+    formatted_content = [f"""
+<details class='issue-details' open>
+<summary><strong>📋 JIRA Issue Details</strong></summary>
+
+| Field | Value |
+|-------|-------|
+| Key | {issue.get('key', 'N/A')} |
+| Title | {issue.get('title', 'N/A')} |
+| Status | {issue.get('status', 'N/A')} |
+
+**Description:**
+```
+{issue.get('description', 'No description provided')}
+```
+</details>
+
+## 🎯 Generated Test Cases
+"""]
+    
+    # Process test case sections
+    sections = {}
+    
+    # Split content into sections using regex
+    section_pattern = re.compile(r'^# [^\n]+$', re.MULTILINE)
+    section_matches = list(section_pattern.finditer(content))
+    
+    # Debug: Print raw content
+    print("\n=== Raw Content ===\n")
+    print(content)
+    print("\n=== End Raw Content ===\n")
+    
+    # Process each section
+    for i in range(len(section_matches)):
+        # Get section title
+        section_start = section_matches[i].start()
+        section_title = content[section_start:section_matches[i].end()].strip()
+        
+        # Get section content
+        if i < len(section_matches) - 1:
+            section_end = section_matches[i + 1].start()
+        else:
+            section_end = len(content)
+        
+        # Extract and clean section content
+        section_content = content[section_matches[i].end():section_end].strip()
+        sections[section_title] = section_content
+        
+        # Debug: Print section info
+        print(f"\n=== Section Found ===\nTitle: {section_title}\nContent:\n{section_content}\n====================\n")
+    
+    # If no sections found, treat entire content as Happy Path
+    if not sections and content.strip():
+        sections['# Happy Path Cases'] = content.strip()
+    
+    # Process each test case section
+    test_case_sections = [
+        "# Happy Path Cases",
+        "# Positive Cases", 
+        "# Edge Cases",
+        "# Negative Cases",
+        "# Regression Cases",
+        "# System Cases",
+        "# Unit Tests",
+        "# User Acceptance Tests"
+    ]
+    
+    for title in test_case_sections:
+        section_content = sections.get(title, '')
+        if not section_content.strip():
+            section_content = f"Scenario: Basic test for {title.replace('#', '').strip()}\nGiven the system is ready\nWhen testing the {title.replace('#', '').strip().lower()}\nThen verify the expected behavior"
+        
+        # Clean up section content
+        clean_section = section_content.strip()
+        
+        # Remove gherkin code block markers if present
+        if clean_section.startswith('```gherkin'):
+            clean_section = clean_section[len('```gherkin'):]
+        if clean_section.endswith('```'):
+            clean_section = clean_section[:-3]
+            
+        # Remove any leading/trailing whitespace after code block removal
+        clean_section = clean_section.strip()
+        
+        # Ensure proper newline handling for tables and indentation
+        lines = []
+        for line in clean_section.split('\n'):
+            # Preserve table formatting and indentation
+            if '|' in line or line.startswith('    '):
+                lines.append(line)  # Keep original spacing
+            else:
+                lines.append(line.strip())
+        clean_section = '\n'.join(lines)
+        
+        # Add formatted section
+        emoji_map = {
+            '# Happy Path Cases': '🎯',
+            '# Positive Cases': '✅',
+            '# Edge Cases': '🔄',
+            '# Negative Cases': '❌',
+            '# Regression Cases': '🔄',
+            '# System Cases': '🌐',
+            '# Unit Tests': '🧪',
+            '# User Acceptance Tests': '👥'
+        }
+        
+        emoji = emoji_map.get(title, 'ℹ️')
+        scenario_count = clean_section.count('Scenario:')
+        
+        formatted_content.append(f"""
+<details class='scenario-section'>
+<summary><strong>{emoji} {title.replace('#', '').strip()}</strong> ({scenario_count} scenarios)</summary>
+
+```gherkin
+{clean_section}
+```
+</details>""")
+    
+    return '\n'.join(formatted_content)
+
 def parse_jira_issues(content: str) -> List[Dict[str, str]]:
     """Parse JIRA content into structured issue data."""
     issues = []
@@ -224,38 +361,82 @@ def parse_jira_issues(content: str) -> List[Dict[str, str]]:
     
     return issues
 
-def generate_test_cases(jira_content: str, temperature: float = 0.7, scenarios_per_category: int = 10) -> Optional[str]:
+def generate_test_cases(jira_content: str, temperature: float = 0.7, scenarios_per_category: int = 10, continue_previous: bool = False) -> Optional[str]:
     """Generate BDD test cases from JIRA content using GPT-4.
     
     Args:
         jira_content: String containing JIRA issue details
         temperature: Float between 0.0 and 1.0 controlling output creativity (default: 0.7)
+        scenarios_per_category: Number of scenarios to generate per category (default: 10)
+        continue_previous: Whether to use previous test cases as context (default: False)
         
     Returns:
         Optional[str]: HTML-formatted test cases with Gherkin syntax highlighting,
                       or None if generation fails
-        Formatted test cases or None if generation fails
     """
     if not jira_content:
         return None
         
-    # Extract JIRA issues from the content
-    issues = parse_jira_issues(jira_content)
-    if not issues:
-        return None
-        
-    # Parse JIRA content first
     try:
+        # Get chat history if continuing from previous generation
+        chat_history = ""
+        if continue_previous:
+            messages = test_case_memory.chat_memory.messages
+            if messages:
+                chat_history = "\nPrevious test cases generated:\n" + "".join([msg.content for msg in messages])
+            
+        # Extract JIRA issues from the content
         issues = parse_jira_issues(jira_content)
         if not issues:
             return "<details class='error-section' open>\n<summary><strong>⚠️ No JIRA Issues Found</strong></summary>\nNo valid JIRA issues were found in the provided content.</details>"
-    except Exception as e:
-        error_details = f"Error parsing JIRA content: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
-        print(error_details, file=sys.stderr)
-        return f"<details class='error-section' open>\n<summary><strong>❌ Error Parsing JIRA Content</strong></summary>\n\n```\n{error_details}\n```\n</details>"
 
-    # Create test case generator agent
-    try:
+        # Create test case generator agent
+        llm = ChatOpenAI(
+            api_key=OPENAI_API_KEY,
+            temperature=temperature,
+            model="gpt-4",
+            max_tokens=4000  # Limit output size
+        )
+        
+        test_cases = []
+        for issue in issues:
+            # Generate test cases for each issue
+            prompt = ChatPromptTemplate.from_messages([
+                ("system", "You are a senior QA engineer tasked with creating comprehensive BDD test cases."),
+                ("user", create_test_case_prompt(issue, scenarios_per_category))
+            ])
+            
+            # Get test cases from LLM
+            messages = prompt.format_messages(scenarios_per_category=scenarios_per_category)
+            response = llm.invoke(messages)
+            
+            # Debug: Print raw response
+            print("\n=== Raw LLM Response ===\n")
+            print(response.content)
+            print("\n=== End Raw Response ===\n")
+            
+            # Process and format the test cases
+            content = response.content
+            if len(content) > 32000:  # If content is too large
+                print(f"[WARNING] Large output detected for {issue['key']}, truncating...")
+                content = content[:32000] + "\n\n[Output truncated due to length]\n"
+            
+            # Store the generated test cases in memory for future reference
+            test_case_memory.save_context(
+                {"input": jira_content},
+                {"output": response.content}
+            )
+            
+            # Format the test cases with HTML and Gherkin highlighting
+            formatted_content = format_test_cases(issue, content, scenarios_per_category)
+            test_cases.append(formatted_content)
+            
+        return "\n".join(test_cases) if test_cases else None
+            
+    except Exception as e:
+        error_details = f"Error generating test cases: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+        print(error_details, file=sys.stderr)
+        return f"<details class='error-section' open>\n<summary><strong>❌ Error Generating Test Cases</strong></summary>\n\n```\n{error_details}\n```\n</details>"
         llm = ChatOpenAI(
             api_key=OPENAI_API_KEY,
             temperature=temperature,
