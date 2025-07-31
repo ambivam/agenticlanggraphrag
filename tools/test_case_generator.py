@@ -24,50 +24,99 @@ Background:
     | Status      | {issue['status']} |
     | Description | {issue['description']} |
 
-Please generate comprehensive test scenarios for this feature including:
+Please generate a COMPREHENSIVE and DETAILED set of test scenarios for this feature. For each category below, provide AT LEAST 8 distinct test scenarios. Each scenario must be specific to the feature described in the JIRA issue and not generic.
 
-1. Happy Path Cases:
-   - Main functionality tests
-   - Expected workflow scenarios
+Analyze the issue description thoroughly and consider all possible user interactions, system behaviors, and potential edge cases. Format all scenarios in Gherkin/Cucumber syntax with clear Given/When/Then steps.
 
-2. Positive Cases:
-   - Valid input variations
-   - Different user roles/permissions
+1. 🎯 Happy Path Cases (Core Functionality):
+   - Primary user workflows
+   - Main feature interactions
+   - Expected successful scenarios
+   - Standard use cases
+   - Basic CRUD operations if applicable
+   - Common user journeys
+   - Typical data scenarios
+   - Expected state transitions
+
+2. ✅ Positive Cases (Valid Variations):
+   - Different valid input combinations
+   - Various user roles and permissions
    - Alternative successful paths
+   - Different data types and formats
+   - Multiple language/locale scenarios
+   - Valid configuration variations
+   - Cross-browser/platform scenarios
+   - Integration with other features
 
-3. Edge Cases:
-   - Boundary conditions
-   - Maximum/minimum values
-   - Resource limits
-   - Timeout scenarios
+3. 🔄 Edge Cases (Boundary Testing):
+   - Minimum/maximum values
+   - Resource limits (memory, CPU, storage)
+   - Timeout conditions
+   - Concurrent user access
+   - Large data sets
+   - Network conditions (slow, intermittent)
+   - Browser cache/cookie scenarios
+   - State transition boundaries
 
-4. Negative Cases:
-   - Invalid inputs
-   - Error handling
+4. ❌ Negative Cases (Error Handling):
+   - Invalid inputs and formats
    - Missing required fields
-   - Unauthorized access
+   - Unauthorized access attempts
+   - Invalid state transitions
+   - System errors and failures
+   - Network errors
+   - Database errors
+   - API errors
 
-5. Regression Cases:
+5. 🔄 Regression Cases (Impact Analysis):
    - Integration with existing features
-   - Impact on related functionality
    - Data consistency checks
+   - Backward compatibility
+   - Configuration changes
+   - Database schema updates
+   - API version compatibility
+   - UI/UX consistency
+   - Performance baseline
 
-6. System Cases:
-   - End-to-end workflows
-   - Performance scenarios
-   - Load testing scenarios
+6. 🌐 System Cases (End-to-End):
+   - Complete user journeys
+   - Performance under load
+   - Scalability scenarios
+   - Data backup/recovery
+   - System upgrades
+   - Security scenarios
+   - Integration points
+   - Monitoring and logging
 
-7. Unit Tests:
-   - Component-level validation
-   - Function-specific tests
-   - Input/output validation
+7. 🧪 Unit Tests (Component Level):
+   - Function parameter validation
+   - Return value verification
+   - State management
+   - Event handling
+   - Error conditions
+   - Component initialization
+   - Resource cleanup
+   - Module interactions
 
-8. User Acceptance Tests:
-   - Business requirement validation
-   - User workflow scenarios
-   - UI/UX validation
+8. 👥 User Acceptance Tests (Business Validation):
+   - Business rule compliance
+   - Workflow validation
+   - UI/UX requirements
+   - Accessibility compliance
+   - Data privacy requirements
+   - Regulatory compliance
+   - Reporting accuracy
+   - User experience goals
 
-Format each scenario in Cucumber syntax with clear Given/When/Then steps and specific examples where relevant."""
+Format each scenario following this template:
+
+  Scenario: [Clear descriptive title]
+    Given [precise context and prerequisites]
+    When [specific user or system actions]
+    Then [expected outcomes in detail]
+    And [additional verification steps if needed]
+
+Provide specific examples and test data where relevant. Include boundary values, equivalence classes, and realistic test data that matches the business context."""
 
 def parse_jira_issues(content: str) -> List[Dict[str, str]]:
     """Parse JIRA content into structured issue data."""
@@ -135,7 +184,78 @@ def generate_test_cases(jira_content: str) -> Optional[str]:
             # Get test cases from LLM
             messages = prompt.format_messages()
             response = llm.invoke(messages)
-            test_cases.append(f"# Test Cases for {issue['key']}: {issue['title']}\n\n{response.content}\n\n")
+            
+            # Format test cases with emojis and headers
+            formatted_content = f"""
+## 🎯 Test Cases for {issue['key']}: {issue['title']}
+
+### Test Scenarios by Category
+
+<details>
+<summary>🎯 Happy Path Cases (Core Functionality)</summary>
+
+```gherkin
+{response.content.split('2. ✅ Positive Cases')[0]}
+```
+</details>
+
+<details>
+<summary>✅ Positive Cases (Valid Variations)</summary>
+
+```gherkin
+2.{response.content.split('2. ✅ Positive Cases')[1].split('3. 🔄 Edge Cases')[0]}
+```
+</details>
+
+<details>
+<summary>🔄 Edge Cases (Boundary Testing)</summary>
+
+```gherkin
+3.{response.content.split('3. 🔄 Edge Cases')[1].split('4. ❌ Negative Cases')[0]}
+```
+</details>
+
+<details>
+<summary>❌ Negative Cases (Error Handling)</summary>
+
+```gherkin
+4.{response.content.split('4. ❌ Negative Cases')[1].split('5. 🔄 Regression Cases')[0]}
+```
+</details>
+
+<details>
+<summary>🔄 Regression Cases (Impact Analysis)</summary>
+
+```gherkin
+5.{response.content.split('5. 🔄 Regression Cases')[1].split('6. 🌐 System Cases')[0]}
+```
+</details>
+
+<details>
+<summary>🌐 System Cases (End-to-End)</summary>
+
+```gherkin
+6.{response.content.split('6. 🌐 System Cases')[1].split('7. 🧪 Unit Tests')[0]}
+```
+</details>
+
+<details>
+<summary>🧪 Unit Tests (Component Level)</summary>
+
+```gherkin
+7.{response.content.split('7. 🧪 Unit Tests')[1].split('8. 👥 User Acceptance Tests')[0]}
+```
+</details>
+
+<details>
+<summary>👥 User Acceptance Tests (Business Validation)</summary>
+
+```gherkin
+8.{response.content.split('8. 👥 User Acceptance Tests')[1]}
+```
+</details>
+"""            
+            test_cases.append(formatted_content)
         except Exception as e:
             print(f"Error generating test cases for {issue['key']}: {str(e)}")
             continue
