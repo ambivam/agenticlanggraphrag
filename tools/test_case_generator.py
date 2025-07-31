@@ -1,9 +1,12 @@
 from typing import Optional, List, Dict
+import os
+import re
+import sys
+import traceback
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import BaseMessage
 from dotenv import load_dotenv
-import os
 import re
 
 load_dotenv()
@@ -173,6 +176,16 @@ def generate_test_cases(jira_content: str, temperature: float = 0.7) -> Optional
     if not issues:
         return None
         
+    # Parse JIRA content first
+    try:
+        issues = parse_jira_issues(jira_content)
+        if not issues:
+            return "<details class='error-section' open>\n<summary><strong>⚠️ No JIRA Issues Found</strong></summary>\nNo valid JIRA issues were found in the provided content.</details>"
+    except Exception as e:
+        error_details = f"Error parsing JIRA content: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+        print(error_details, file=sys.stderr)
+        return f"<details class='error-section' open>\n<summary><strong>❌ Error Parsing JIRA Content</strong></summary>\n\n```\n{error_details}\n```\n</details>"
+
     # Create test case generator agent
     try:
         llm = ChatOpenAI(
@@ -182,18 +195,19 @@ def generate_test_cases(jira_content: str, temperature: float = 0.7) -> Optional
             max_tokens=4000  # Limit output size
         )
     except Exception as e:
-        print(f"Error initializing OpenAI: {str(e)}")
-        return None
+        error_details = f"Error initializing OpenAI: {str(e)}"
+        print(error_details, file=sys.stderr)
+        return f"<details class='error-section' open>\n<summary><strong>❌ OpenAI Error</strong></summary>\n\n```\n{error_details}\n```\n</details>"
     
     test_cases = []
     for issue in issues:
-        # Generate test cases for each issue
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a senior QA engineer tasked with creating comprehensive BDD test cases."),
-            ("user", create_test_case_prompt(issue))
-        ])
-        
         try:
+            # Generate test cases for each issue
+            prompt = ChatPromptTemplate.from_messages([
+                ("system", "You are a senior QA engineer tasked with creating comprehensive BDD test cases."),
+                ("user", create_test_case_prompt(issue))
+            ])
+            
             # Get test cases from LLM
             messages = prompt.format_messages()
             response = llm.invoke(messages)
@@ -204,8 +218,30 @@ def generate_test_cases(jira_content: str, temperature: float = 0.7) -> Optional
                 print(f"[WARNING] Large output detected for {issue['key']}, truncating...")
                 content = content[:32000] + "\n\n[Output truncated due to length]\n"
                 
-            # Format test cases with collapsible sections
-            formatted_content = [f"## 🎯 Test Cases for {issue['key']}: {issue['title']}\n"]
+            # Add JIRA issue details section
+            formatted_content = ["""
+<details class='issue-details' open>
+<summary><strong>📋 JIRA Issue Details</strong></summary>
+
+| Field | Value |
+|-------|-------|
+| Key | {key} |
+| Title | {title} |
+| Status | {status} |
+
+**Description:**
+```
+{description}
+```
+</details>
+
+## 🎯 Generated Test Cases
+""".format(
+                key=issue.get('key', 'N/A'),
+                title=issue.get('title', 'N/A'),
+                status=issue.get('status', 'N/A'),
+                description=issue.get('description', 'No description provided')
+            )]
             
             # Define categories with minimum scenario requirements
             categories = [
@@ -268,12 +304,14 @@ def generate_test_cases(jira_content: str, temperature: float = 0.7) -> Optional
                 clean_section = re.sub(r'[\U0001F300-\U0001F9FF]', '', clean_section)
                 # Fix extra newlines
                 clean_section = re.sub(r'\n{3,}', '\n\n', clean_section)
+                # Fix indentation
+                clean_section = '\n'.join(line.strip() for line in clean_section.split('\n'))
                 clean_section = clean_section.strip()
                 
                 # Add formatted section to output with proper syntax highlighting
                 formatted_content.append(f"""
 <details class='scenario-section'>
-<summary><strong>{title}</strong></summary>
+<summary><strong>{title}</strong> ({scenario_count} scenarios)</summary>
 
 ```gherkin
 {clean_section}
@@ -283,12 +321,9 @@ def generate_test_cases(jira_content: str, temperature: float = 0.7) -> Optional
                 
             test_cases.append("\n".join(formatted_content))
         except Exception as e:
-            print(f"Error generating test cases: {str(e)}")
-            print("Full traceback:")
-            traceback.print_exc()
-        except Exception as e:
-            print(f"Error generating test cases for {issue['key']}: {str(e)}")
-            continue
+            error_details = f"Error generating test cases: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+            print(error_details, file=sys.stderr)
+            return f"<details class='error-section' open>\n<summary><strong>❌ Error Generating Test Cases</strong></summary>\n\n```\n{error_details}\n```\n</details>"
     
     if not test_cases:
         return None
