@@ -346,6 +346,7 @@ def generate_test_cases(jira_content: str, temperature: float = 0.7, scenarios_p
         Optional[str]: HTML-formatted test cases with Gherkin syntax highlighting,
                       or None if generation fails
     """
+    global test_case_memory
     if not jira_content:
         return None
         
@@ -353,9 +354,22 @@ def generate_test_cases(jira_content: str, temperature: float = 0.7, scenarios_p
         # Get chat history if continuing from previous generation
         chat_history = ""
         if continue_previous:
-            messages = test_case_memory.chat_memory.messages
-            if messages:
-                chat_history = "\nPrevious test cases generated:\n" + "".join([msg.content for msg in messages])
+            try:
+                messages = test_case_memory.chat_memory.messages
+                if messages:
+                    # Extract only the test scenarios from previous messages
+                    previous_cases = []
+                    for msg in messages:
+                        if "Scenario:" in msg.content:
+                            scenarios = re.findall(r'Scenario:.*?(?=Scenario:|$)', msg.content, re.DOTALL)
+                            previous_cases.extend(scenarios)
+                    
+                    if previous_cases:
+                        chat_history = "\nPreviously generated test scenarios (please avoid duplicating these):\n"
+                        chat_history += "\n".join(previous_cases)
+            except Exception as e:
+                print(f"Error accessing chat history: {str(e)}")
+                chat_history = ""
             
         # Extract JIRA issues from the content
         issues = parse_jira_issues(jira_content)
@@ -585,7 +599,12 @@ def generate_test_cases(jira_content: str, temperature: float = 0.7, scenarios_p
 </details>
 """)
                 
-            test_cases.append("\n".join(formatted_content))
+            formatted_result = "\n".join(formatted_content)
+            test_cases.append(formatted_result)
+            
+            # Store the generated test cases in memory
+            if not any(msg.content == formatted_result for msg in test_case_memory.chat_memory.messages):
+                test_case_memory.chat_memory.add_user_message(formatted_result)
         except Exception as e:
             error_details = f"Error generating test cases: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
             print(error_details, file=sys.stderr)
