@@ -1,11 +1,12 @@
 import os
 from dotenv import load_dotenv
-from typing import TypedDict, Optional
+from typing import TypedDict, Optional, List, Dict, Any
 
 from tools.rag_tool import get_rag_chain
 from tools.mysql_tool import get_mysql_agent
 from tools.serpapi_tool import get_serp_tool
 from tools.jira_tool import search_jira_issues, jira_config
+from tools.test_case_generator import generate_test_cases
 
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
@@ -20,6 +21,7 @@ class ChatState(TypedDict, total=False):
     sql_context: Optional[str]
     serp_context: Optional[str]
     jira_context: Optional[str]
+    test_cases: Optional[str]
     final_answer: Optional[str]
     found: bool
 
@@ -130,6 +132,16 @@ def jira_node(state: ChatState) -> ChatState:
         state["found"] = False
     return state
 
+def test_case_node(state: ChatState) -> ChatState:
+    """Generate test cases for JIRA issues."""
+    if "test_cases" not in state:
+        state["test_cases"] = None
+        
+    if state.get("jira_context"):
+        state["test_cases"] = generate_test_cases(state["jira_context"])
+    
+    return state
+
 def final_answer_node(state: ChatState) -> ChatState:
     # Initialize final answer
     state['final_answer'] = ""
@@ -147,9 +159,11 @@ def final_answer_node(state: ChatState) -> ChatState:
     if state.get('serp_context') and state.get('serp_context') != 'None':
         sources.append(f"From web search: {state['serp_context']}")
         
-    # Check JIRA result
+    # Check JIRA result and test cases
     if state.get('jira_context') and state.get('jira_context') != 'None':
         sources.append(f"From JIRA: {state['jira_context']}")
+        if state.get('test_cases'):
+            sources.append(f"\n\nGenerated Test Cases:\n{state['test_cases']}")
     
     # Combine all found sources
     if sources:
@@ -159,6 +173,14 @@ def final_answer_node(state: ChatState) -> ChatState:
     
     return state
 
+def should_use_jira(state: ChatState) -> bool:
+    """Determine if JIRA node should be used."""
+    return jira_config.is_configured()
+
+def has_jira_results(state: ChatState) -> bool:
+    """Check if JIRA results are present."""
+    return bool(state.get("jira_context"))
+
 # LangGraph flow
 graph = StateGraph(ChatState)
 
@@ -167,6 +189,7 @@ graph.set_entry_point("RAG")
 
 # Add nodes
 graph.add_node("RAG", rag_node)
+graph.add_node("TestCases", test_case_node)
 graph.add_node("MySQL", mysql_node)
 graph.add_node("WebSearch", serp_node)
 graph.add_node("JIRA", jira_node)
@@ -182,17 +205,20 @@ graph.add_edge("RAG", "MySQL")
 graph.add_edge("MySQL", "WebSearch")
 
 # After WebSearch, conditionally go to JIRA or Answer
-def should_use_jira(state: ChatState) -> bool:
-    return jira_config.is_configured()
-
 graph.add_conditional_edges(
     "WebSearch",
     should_use_jira,
     {True: "JIRA", False: "Answer"}
 )
 
-# After JIRA, go to final answer
-graph.add_edge("JIRA", "Answer")
+# After JIRA, conditionally go to TestCases or Answer
+graph.add_conditional_edges(
+    "JIRA",
+    has_jira_results,
+    {True: "TestCases", False: "Answer"}
+)
+
+graph.add_edge("TestCases", "Answer")
 
 # Set finish point
 graph.set_finish_point("Answer")

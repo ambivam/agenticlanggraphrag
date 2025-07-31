@@ -122,3 +122,7 @@ if user_input:
         if result.get("jira_context"):
             with st.expander("🎫 JIRA Results", expanded=True):
                 st.markdown(result["jira_context"])
+                
+        if result.get("test_cases"):
+            with st.expander("🧪 Test Cases", expanded=True):
+                st.markdown(result["test_cases"])
