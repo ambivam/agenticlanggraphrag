@@ -16,7 +16,7 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY environment variable is required for test case generation")
 
-def create_test_case_prompt(issue: Dict[str, str]) -> str:
+def create_test_case_prompt(issue: Dict[str, str], scenarios_per_category: int = 10) -> str:
     """Create a detailed prompt for test case generation.
     
     Args:
@@ -40,77 +40,133 @@ IMPORTANT INSTRUCTIONS:
 4. Identify dependencies and integration points described
 5. Pay attention to any specific user roles or permissions mentioned
 6. Note any performance, security, or compliance requirements
+7. Focus on the search functionality requirements:
+   - Search by keywords with AND/OR operators
+   - Search in skills and work experience
+   - Search with quotes for exact phrases
+   - Advanced filtering options
+   - Candidate status and availability
+   - Location and language requirements
+   - Salary expectations and current salary
+   - Skills and experience matching
 
-Please generate a COMPREHENSIVE and DETAILED set of test scenarios. For each category below, provide AT LEAST 20 distinct test scenarios that are:
-- Specific to the feature described in BOTH title and description
-- Cover all aspects mentioned in the description
-- Address both functional and non-functional requirements
-- Consider all possible user roles and permissions
-- Test all mentioned integrations and dependencies
+IMPORTANT: You MUST generate EXACTLY {scenarios_per_category} test scenarios for EACH category below. No more, no less.
 
-Categories to cover:
+Please generate a COMPREHENSIVE and DETAILED set of test scenarios focused on the advanced search functionality. The scenarios should cover:
 
-1. 🎯 Happy Path Cases (Core Functionality)
-   - Main success scenarios from description
-   - Primary user flows mentioned
-   - Expected behavior for each requirement
-   - Different user roles' success paths
-   - Specific workflows described
+1. Keyword Search Features:
+   - Single keyword searches
+   - Multiple keyword combinations
+   - AND operator functionality
+   - OR operator functionality
+   - Exact phrase matching with quotes
+   - Case sensitivity handling
+   - Special character handling
+   - Search result relevance
 
-2. ✅ Positive Cases (Valid Variations)
-   - Alternative valid inputs described
-   - Different valid user flows
-   - Optional feature combinations
-   - Valid data variations mentioned
-   - Permitted user role variations
+2. Search Scope:
+   - Skills search
+   - Work experience search
+   - Education search
+   - Combined field search
+   - Profile-wide search
+   - Field-specific search
 
-3. 🔄 Edge Cases (Boundary Testing)
-   - Minimum/maximum values from requirements
-   - Resource limits mentioned
-   - Timing conditions in description
-   - Concurrent operations
-   - Integration edge cases
-   - Load conditions specified
+3. Advanced Filters:
+   - Country filter
+   - City filter
+   - Language and proficiency
+   - Skills with suggestions
+   - Salary expectations
+   - Current salary
+   - Employment status
+   - Sector experience
+   - Payment schemes
+   - Relocation availability
+   - Candidate status
+   - Recruitment source
+   - Recruiter assignment
 
-4. ❌ Negative Cases (Error Handling)
-   - Invalid inputs for each field
-   - Missing required data
-   - System errors mentioned
-   - Network issues
-   - Security violations
-   - Error scenarios described
+4. Result Handling:
+   - Result ordering
+   - Result filtering
+   - Result pagination
+   - Result accuracy
+   - Performance with large datasets
+   - Response time requirements
 
-5. 🔄 Regression Cases (Impact Analysis)
-   - Integration points from description
-   - Dependent features mentioned
-   - Data consistency requirements
-   - State transitions
-   - Backward compatibility needs
-   - Migration scenarios described
+REQUIREMENTS FOR EACH SCENARIO:
+1. Must be specific and actionable
+2. Must have clear success criteria
+3. Must include realistic test data
+4. Must cover edge cases where applicable
+5. Must validate business rules
 
-6. 🌐 System Cases (End-to-End)
-   - Performance requirements mentioned
-   - Security constraints described
-   - Data persistence rules
-   - State management scenarios
-   - Integration flows
-   - Monitoring requirements
+REMEMBER: Generate EXACTLY {scenarios_per_category} scenarios for each category.
 
-7. 🧪 Unit Tests (Component Level)
-   - Function inputs/outputs from description
-   - State transitions mentioned
-   - Business logic rules
-   - Validation requirements
-   - Component interactions
-   - Error handling specifics
+Test Categories:
 
-8. 👥 User Acceptance Tests (Business Validation)
-   - Business requirements from description
-   - User workflows mentioned
-   - Domain rules specified
-   - Compliance requirements
-   - User experience criteria
-   - Business process validations
+# Happy Path Cases (Core Functionality)
+- Main success scenarios from description
+- Primary user flows mentioned
+- Expected behavior for each requirement
+- Different user roles' success paths
+- Specific workflows described
+
+# Positive Cases (Valid Variations)
+- Alternative valid inputs described
+- Different valid user flows
+- Optional feature combinations
+- Valid data variations mentioned
+- Permitted user role variations
+
+# Edge Cases (Boundary Testing)
+- Minimum/maximum values from requirements
+- Resource limits mentioned
+- Timing conditions in description
+- Concurrent operations
+- Integration edge cases
+- Load conditions specified
+
+# Negative Cases (Error Handling)
+- Invalid inputs for each field
+- Missing required data
+- System errors mentioned
+- Network issues
+- Security violations
+- Error scenarios described
+
+# Regression Cases (Impact Analysis)
+- Integration points from description
+- Dependent features mentioned
+- Data consistency requirements
+- State transitions
+- Backward compatibility needs
+- Migration scenarios described
+
+# System Cases (End-to-End)
+- Performance requirements mentioned
+- Security constraints described
+- Data persistence rules
+- State management scenarios
+- Integration flows
+- Monitoring requirements
+
+# Unit Tests (Component Level)
+- Function inputs/outputs from description
+- State transitions mentioned
+- Business logic rules
+- Validation requirements
+- Component interactions
+- Error handling specifics
+
+# User Acceptance Tests (Business Validation)
+- Business requirements from description
+- User workflows mentioned
+- Domain rules specified
+- Compliance requirements
+- User experience criteria
+- Business process validations
 
 Use this Gherkin template and ensure each scenario references specific requirements from the description:
 ```gherkin
@@ -168,7 +224,7 @@ def parse_jira_issues(content: str) -> List[Dict[str, str]]:
     
     return issues
 
-def generate_test_cases(jira_content: str, temperature: float = 0.7) -> Optional[str]:
+def generate_test_cases(jira_content: str, temperature: float = 0.7, scenarios_per_category: int = 10) -> Optional[str]:
     """Generate BDD test cases from JIRA content using GPT-4.
     
     Args:
@@ -217,12 +273,17 @@ def generate_test_cases(jira_content: str, temperature: float = 0.7) -> Optional
             # Generate test cases for each issue
             prompt = ChatPromptTemplate.from_messages([
                 ("system", "You are a senior QA engineer tasked with creating comprehensive BDD test cases."),
-                ("user", create_test_case_prompt(issue))
+                ("user", create_test_case_prompt(issue, scenarios_per_category))
             ])
             
             # Get test cases from LLM
-            messages = prompt.format_messages()
+            messages = prompt.format_messages(scenarios_per_category=scenarios_per_category)
             response = llm.invoke(messages)
+            
+            # Debug: Print raw response
+            print("\n=== Raw LLM Response ===")
+            print(response.content)
+            print("=== End Raw Response ===")
             
             # Split response into categories and handle large outputs
             content = response.content
@@ -257,43 +318,70 @@ def generate_test_cases(jira_content: str, temperature: float = 0.7) -> Optional
             
             # Define categories with minimum scenario requirements
             categories = [
-                ("🎯 Happy Path Cases", "1.", "2.", 5),  # Min scenarios per category
-                ("✅ Positive Cases", "2.", "3.", 5),
-                ("🔄 Edge Cases", "3.", "4.", 3),
-                ("❌ Negative Cases", "4.", "5.", 3),
-                ("🔄 Regression Cases", "5.", "6.", 2),
-                ("🌐 System Cases", "6.", "7.", 2),
-                ("🧪 Unit Tests", "7.", "8.", 2),
-                ("👥 User Acceptance Tests", "8.", None, 2)
+                ("Happy Path Cases", None, None, scenarios_per_category),
+                ("Positive Cases", None, None, scenarios_per_category),
+                ("Edge Cases", None, None, scenarios_per_category),
+                ("Negative Cases", None, None, scenarios_per_category),
+                ("Regression Cases", None, None, scenarios_per_category),
+                ("System Cases", None, None, scenarios_per_category),
+                ("Unit Tests", None, None, scenarios_per_category),
+                ("User Acceptance Tests", None, None, scenarios_per_category)
             ]
             # Process each category
-            for title, start, end, min_scenarios in categories:
+            for title, _, _, min_scenarios in categories:
                 section = ""
+                scenario_count = 0  # Initialize counter
                 try:
-                    # Extract section safely
-                    parts = content.split(start)
-                    if len(parts) < 2:
-                        raise ValueError(f"Could not find section start marker '{start}'")
-                        
-                    section = parts[1]  # Take the part after the start marker
+                    # Find section using regex with flexible matching
+                    patterns = [
+                        # Try exact match
+                        f'^{re.escape(title)}\s*(?:\(.*?\))?[:\s]*$',
+                        # Try with leading #
+                        f'^#\s*{re.escape(title)}\s*(?:\(.*?\))?[:\s]*$',
+                        # Try with emoji prefix
+                        f'^[\u2600-\U0001F9FF]\s*{re.escape(title)}\s*(?:\(.*?\))?[:\s]*$',
+                        # Try case insensitive
+                        f'^(?i){re.escape(title)}\s*(?:\(.*?\))?[:\s]*$'
+                    ]
                     
-                    if end:
-                        end_parts = section.split(end)
-                        if len(end_parts) < 1:
-                            raise ValueError(f"Could not find section end marker '{end}'")
-                        section = end_parts[0]  # Take the part before the end marker
+                    section = None
+                    for pattern in patterns:
+                        # Split content into sections by any markdown header or double newline
+                        sections = re.split(r'\n(?:#{1,6}\s|\n\s*\n)', content)
+                        
+                        # Find section that starts with our pattern
+                        for s in sections:
+                            if re.search(pattern, s.strip().split('\n')[0], re.MULTILINE):
+                                section = '\n'.join(s.strip().split('\n')[1:])
+                                break
+                        
+                        if section:
+                            break
+                    
+                    if not section:
+                        raise ValueError(f"Could not find section '{title}' using any pattern")
                     
                     # Verify section has content
                     if not section.strip():
                         raise ValueError("Empty section content")
                     
-                    # Verify minimum scenarios
+                    # Count scenarios and ensure minimum
                     scenario_count = section.count("Scenario:")
-                    if scenario_count < min_scenarios:
+                    scenarios_needed = max(0, min_scenarios - scenario_count)
+                    
+                    if scenarios_needed > 0:
                         print(f"[WARNING] {title} has only {scenario_count} scenarios (minimum {min_scenarios})")
                         # Add placeholder scenarios if needed
-                        if scenario_count == 0:
-                            section = f"Scenario: Placeholder for {title}\nGiven no scenarios were generated\nWhen reviewing the output\nThen add more specific scenarios\n\n{section}"
+                        placeholder_scenarios = []
+                        for i in range(scenarios_needed):
+                            placeholder_scenarios.append(
+                                f"Scenario: Additional test for {title} #{i+1}\n"
+                                f"Given the search functionality requirements\n"
+                                f"When implementing missing test cases\n"
+                                f"Then add specific scenarios for {title.lower()}\n"
+                            )
+                        section = "\n\n".join([section] + placeholder_scenarios)
+                        scenario_count = min_scenarios  # Update count
                     
                     # Truncate very large sections
                     if len(section) > 8000:
@@ -321,9 +409,22 @@ def generate_test_cases(jira_content: str, temperature: float = 0.7) -> Optional
                 clean_section = clean_section.strip()
                 
                 # Add formatted section to output with proper syntax highlighting
+                # Add emoji based on category
+                emoji_map = {
+                    'Happy Path Cases': '🎯',
+                    'Positive Cases': '✅',
+                    'Edge Cases': '🔄',
+                    'Negative Cases': '❌',
+                    'Regression Cases': '🔄',
+                    'System Cases': '🌐',
+                    'Unit Tests': '🧪',
+                    'User Acceptance Tests': '👥'
+                }
+                emoji = emoji_map.get(title, 'ℹ️')
+                
                 formatted_content.append(f"""
 <details class='scenario-section'>
-<summary><strong>{title}</strong> ({scenario_count} scenarios)</summary>
+<summary><strong>{emoji} {title}</strong> ({scenario_count} scenarios)</summary>
 
 ```gherkin
 {clean_section}

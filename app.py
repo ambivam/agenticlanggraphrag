@@ -72,16 +72,30 @@ with st.expander("Search and Generation Settings", expanded=True):
     jira_project = st.text_input("Project Key", placeholder="e.g., PROJ")
     st.caption("Enter the project key to search for issues in that project")
     
-    # LLM Temperature
-    st.markdown("#### 🌡️ LLM Temperature")
-    llm_temperature = st.slider(
-        "Creativity vs. Consistency",
-        min_value=0.0,
-        max_value=1.0,
-        value=0.7,
-        step=0.1,
-        help="Lower values (0.0) give more focused and consistent outputs. Higher values (1.0) give more creative and varied outputs."
-    )
+    # Add controls column
+    col1, col2 = st.columns(2)
+    
+    # Add temperature slider
+    with col1:
+        llm_temperature = st.slider(
+            "LLM Temperature",
+            min_value=0.0,
+            max_value=1.0,
+            value=0.7,
+            step=0.1,
+            help="Lower values (0.0) give more focused and consistent outputs. Higher values (1.0) give more creative and varied outputs."
+        )
+    
+    # Add test case count slider
+    with col2:
+        scenarios_per_category = st.slider(
+            "Scenarios per Category",
+            min_value=5,
+            max_value=30,
+            value=10,
+            step=5,
+            help="Number of test scenarios to generate per category. More scenarios = more comprehensive testing but longer generation time."
+        )
 
 st.markdown("---")
 
@@ -103,10 +117,11 @@ if search_button and user_input:
         if jira_project:
             jira_config.set_project_key(jira_project)
             
-        # Set LLM temperature in state
+        # Update state with project key, temperature, and test cases count
         state = {
             "input": user_input,
-            "llm_temperature": llm_temperature
+            "llm_temperature": llm_temperature,
+            "scenarios_per_category": scenarios_per_category
         }
         
         result = app.invoke(state)
