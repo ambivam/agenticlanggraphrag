@@ -136,8 +136,20 @@ def parse_jira_issues(content: str) -> List[Dict[str, str]]:
             
         # Extract issue details using regex
         title_match = re.match(r'([^:]+):\s*(.+?)(?=\n|$)', block)
-        status_match = re.search(r'\*\*Status:\*\*\s*([^|]+)', block)
-        desc_match = re.search(r'\*\*Description:\*\*\s*(.+?)(?=\n\n|$)', block, re.DOTALL)
+        status_match = re.search(r'\*\*Status:\*\*\s*([^|\n]+)', block)
+        desc_match = re.search(r'\*\*Description:\*\*\s*([\s\S]+?)(?=\n\*\*|$)', block)
+        
+        # Clean up description if found
+        description = ''
+        if desc_match:
+            description = desc_match.group(1).strip()
+            # Remove JIRA color formatting
+            description = re.sub(r'\{color:[^}]+\}([^{]+)\{color\}', r'\1', description)
+            # Remove image tags
+            description = re.sub(r'!.*?!', '', description)
+            # Clean up extra whitespace
+            description = re.sub(r'\n{3,}', '\n\n', description)
+            description = description.strip()
         
         if title_match:
             # Extract key and title separately
@@ -149,7 +161,7 @@ def parse_jira_issues(content: str) -> List[Dict[str, str]]:
                 'key': key,
                 'title': title,
                 'status': status_match.group(1).strip() if status_match else 'Unknown',
-                'description': desc_match.group(1).strip() if desc_match else 'No description'
+                'description': description if description else 'No description provided'
             }
             issues.append(issue)
             print(f"[DEBUG] Parsed JIRA issue: {issue}")
