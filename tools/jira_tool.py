@@ -13,25 +13,21 @@ class JiraConfig:
     """Configuration class for JIRA integration."""
     
     def __init__(self):
-        self.server = None
-        self.username = None
-        self.api_token = None
-        self.project_key = None
-        self.is_enabled = False
-
-    def configure(self, server: str, username: str, api_token: str, project_key: str) -> None:
-        """Configure JIRA connection parameters."""
-        print(f"[DEBUG] Configuring JIRA with:")
-        print(f"[DEBUG] Server: {server}")
-        print(f"[DEBUG] Username: {username}")
-        print(f"[DEBUG] Project Key: {project_key}")
+        # Load configuration from environment variables
+        self.server = os.getenv('JIRA_SERVER')
+        self.username = os.getenv('JIRA_USERNAME')
+        self.api_token = os.getenv('JIRA_API_TOKEN')
+        self.project_key = None  # Will be set from UI input
+        self.is_enabled = True  # Always enabled if env vars are present
         
-        self.server = server
-        self.username = username
-        self.api_token = api_token
+        print(f"[DEBUG] Loaded JIRA config from environment:")
+        print(f"[DEBUG] Server: {self.server}")
+        print(f"[DEBUG] Username: {self.username}")
+
+    def set_project_key(self, project_key: str) -> None:
+        """Set the JIRA project key."""
         self.project_key = project_key
-        self.is_enabled = True
-        print("[DEBUG] JIRA configuration completed")
+        print(f"[DEBUG] Set project key to: {project_key}")
 
     def is_configured(self) -> bool:
         """Check if all required configuration is present."""
@@ -39,8 +35,7 @@ class JiraConfig:
             self.server,
             self.username,
             self.api_token,
-            self.project_key,
-            self.is_enabled
+            self.project_key
         ])
 
 jira_config = JiraConfig()

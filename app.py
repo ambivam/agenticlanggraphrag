@@ -64,44 +64,27 @@ if uploaded_files:
 # Divider
 st.markdown("---")
 
-# JIRA Configuration
-st.markdown("### 🔧 JIRA Configuration")
-jira_enabled = st.checkbox("Enable JIRA Integration", value=False)
-
-if jira_enabled:
-    with st.expander("JIRA Settings", expanded=True):
-        jira_server = st.text_input("JIRA Server URL", placeholder="https://your-domain.atlassian.net")
-        jira_username = st.text_input("JIRA Username/Email")
-        jira_api_token = st.text_input("JIRA API Token", type="password")
-        jira_project = st.text_input("JIRA Project Key", placeholder="e.g., PROJ")
-        
-        if st.button("Save JIRA Configuration"):
-            if all([jira_server, jira_username, jira_api_token, jira_project]):
-                jira_config.configure(
-                    server=jira_server,
-                    username=jira_username,
-                    api_token=jira_api_token,
-                    project_key=jira_project
-                )
-                st.success("✅ JIRA configuration saved!")
-            else:
-                st.error("❌ Please fill in all JIRA configuration fields")
-else:
-    jira_config.is_enabled = False
+# JIRA Project Key Input
+st.markdown("### 🎫 JIRA Query")
+with st.expander("JIRA Search Settings", expanded=True):
+    jira_project = st.text_input("JIRA Project Key", placeholder="e.g., PROJ")
+    st.caption("Enter the project key to search for issues in that project")
+    st.caption("You can also enter a natural language query to search across issues")
 
 st.markdown("---")
 
 # Chat section
 st.markdown("### 💬 Chat")
-if jira_enabled and jira_config.is_configured():
-    st.caption("Order of sources: RAG ➜ MySQL ➜ Web Search (SerpAPI) ➜ JIRA")
-else:
-    st.caption("Order of sources: RAG ➜ MySQL ➜ Web Search (SerpAPI)")
+st.caption("Order of sources: RAG ➜ MySQL ➜ Web Search (SerpAPI) ➜ JIRA")
 
 user_input = st.text_input("Enter your question:")
 
 if user_input:
     with st.spinner("Searching..."):
+        # Set JIRA project key if provided
+        if jira_project:
+            jira_config.set_project_key(jira_project)
+        
         state = {"input": user_input}
         result = app.invoke(state)
         st.markdown("### 🤖 Response")
@@ -125,4 +108,4 @@ if user_input:
                 
         if result.get("test_cases"):
             with st.expander("🧪 Test Cases", expanded=True):
-                st.markdown(result["test_cases"])
+                st.markdown(result["test_cases"], unsafe_allow_html=True)

@@ -185,77 +185,51 @@ def generate_test_cases(jira_content: str) -> Optional[str]:
             messages = prompt.format_messages()
             response = llm.invoke(messages)
             
-            # Format test cases with emojis and headers
-            formatted_content = f"""
-## 🎯 Test Cases for {issue['key']}: {issue['title']}
-
-### Test Scenarios by Category
-
-<details>
-<summary>🎯 Happy Path Cases (Core Functionality)</summary>
-
-```gherkin
-{response.content.split('2. ✅ Positive Cases')[0]}
-```
-</details>
-
-<details>
-<summary>✅ Positive Cases (Valid Variations)</summary>
-
-```gherkin
-2.{response.content.split('2. ✅ Positive Cases')[1].split('3. 🔄 Edge Cases')[0]}
-```
-</details>
-
-<details>
-<summary>🔄 Edge Cases (Boundary Testing)</summary>
-
-```gherkin
-3.{response.content.split('3. 🔄 Edge Cases')[1].split('4. ❌ Negative Cases')[0]}
-```
-</details>
-
-<details>
-<summary>❌ Negative Cases (Error Handling)</summary>
-
-```gherkin
-4.{response.content.split('4. ❌ Negative Cases')[1].split('5. 🔄 Regression Cases')[0]}
-```
-</details>
-
-<details>
-<summary>🔄 Regression Cases (Impact Analysis)</summary>
+            # Split response into categories
+            categories = [
+                ("🎯 Happy Path Cases", "1.", "2."),
+                ("✅ Positive Cases", "2.", "3."),
+                ("🔄 Edge Cases", "3.", "4."),
+                ("❌ Negative Cases", "4.", "5."),
+                ("🔄 Regression Cases", "5.", "6."),
+                ("🌐 System Cases", "6.", "7."),
+                ("🧪 Unit Tests", "7.", "8."),
+                ("👥 User Acceptance Tests", "8.", None)
+            ]
+            # Format test cases with collapsible sections
+            formatted_content = [f"## 🎯 Test Cases for {issue['key']}: {issue['title']}\n"]
+            
+            content = response.content
+            try:
+                # Split response into categories
+                categories = [
+                    ("🎯 Happy Path Cases", "1.", "2."),
+                    ("✅ Positive Cases", "2.", "3."),
+                    ("🔄 Edge Cases", "3.", "4."),
+                    ("❌ Negative Cases", "4.", "5."),
+                    ("🔄 Regression Cases", "5.", "6."),
+                    ("🌐 System Cases", "6.", "7."),
+                    ("🧪 Unit Tests", "7.", "8."),
+                    ("👥 User Acceptance Tests", "8.", None)
+                ]
+                
+                for title, start, end in categories:
+                    section = content.split(start)[1].split(end)[0] if end else content.split(start)[1]
+                    formatted_content.append(f"""
+<details class='scenario-section'>
+<summary><strong>{title}</strong></summary>
 
 ```gherkin
-5.{response.content.split('5. 🔄 Regression Cases')[1].split('6. 🌐 System Cases')[0]}
+{start}{section.strip()}
 ```
-</details>
 
-<details>
-<summary>🌐 System Cases (End-to-End)</summary>
-
-```gherkin
-6.{response.content.split('6. 🌐 System Cases')[1].split('7. 🧪 Unit Tests')[0]}
-```
-</details>
-
-<details>
-<summary>🧪 Unit Tests (Component Level)</summary>
-
-```gherkin
-7.{response.content.split('7. 🧪 Unit Tests')[1].split('8. 👥 User Acceptance Tests')[0]}
-```
-</details>
-
-<details>
-<summary>👥 User Acceptance Tests (Business Validation)</summary>
-
-```gherkin
-8.{response.content.split('8. 👥 User Acceptance Tests')[1]}
-```
-</details>
-"""            
-            test_cases.append(formatted_content)
+</details>""")
+                
+                test_cases.append("\n".join(formatted_content))
+            except Exception as e:
+                print(f"Error generating test cases: {str(e)}")
+                print("Full traceback:")
+                traceback.print_exc()
         except Exception as e:
             print(f"Error generating test cases for {issue['key']}: {str(e)}")
             continue
