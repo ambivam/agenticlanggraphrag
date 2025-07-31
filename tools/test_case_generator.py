@@ -24,7 +24,7 @@ Background:
     | Status      | {issue['status']} |
     | Description | {issue['description']} |
 
-Please generate a COMPREHENSIVE and DETAILED set of test scenarios for this feature. For each category below, provide AT LEAST 8 distinct test scenarios. Each scenario must be specific to the feature described in the JIRA issue and not generic.
+Please generate a COMPREHENSIVE and DETAILED set of test scenarios for this feature. For each category below, provide AT LEAST 20 distinct test scenarios. Each scenario must be specific to the feature described in the JIRA issue and not generic.
 
 Analyze the issue description thoroughly and consider all possible user interactions, system behaviors, and potential edge cases. Format all scenarios in Gherkin/Cucumber syntax with clear Given/When/Then steps.
 
@@ -151,8 +151,16 @@ def parse_jira_issues(content: str) -> List[Dict[str, str]]:
     
     return issues
 
-def generate_test_cases(jira_content: str) -> Optional[str]:
-    """Generate comprehensive BDD test cases for JIRA issues."""
+def generate_test_cases(jira_content: str, temperature: float = 0.7) -> Optional[str]:
+    """Generate comprehensive BDD test cases for JIRA issues.
+    
+    Args:
+        jira_content: JIRA issue content to generate test cases for
+        temperature: LLM temperature (0.0 to 1.0) controlling output creativity
+        
+    Returns:
+        Formatted test cases or None if generation fails
+    """
     if not jira_content:
         return None
         
@@ -165,7 +173,7 @@ def generate_test_cases(jira_content: str) -> Optional[str]:
     try:
         llm = ChatOpenAI(
             api_key=OPENAI_API_KEY,
-            temperature=0.7,
+            temperature=temperature,
             model="gpt-4"
         )
     except Exception as e:

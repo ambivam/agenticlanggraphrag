@@ -64,12 +64,24 @@ if uploaded_files:
 # Divider
 st.markdown("---")
 
-# JIRA Project Key Input
-st.markdown("### 🎫 JIRA Query")
-with st.expander("JIRA Search Settings", expanded=True):
-    jira_project = st.text_input("JIRA Project Key", placeholder="e.g., PROJ")
+# JIRA and LLM Settings
+st.markdown("### ⚙️ Settings")
+with st.expander("Search and Generation Settings", expanded=True):
+    # JIRA Project Key
+    st.markdown("#### 🎫 JIRA Project")
+    jira_project = st.text_input("Project Key", placeholder="e.g., PROJ")
     st.caption("Enter the project key to search for issues in that project")
-    st.caption("You can also enter a natural language query to search across issues")
+    
+    # LLM Temperature
+    st.markdown("#### 🌡️ LLM Temperature")
+    llm_temperature = st.slider(
+        "Creativity vs. Consistency",
+        min_value=0.0,
+        max_value=1.0,
+        value=0.7,
+        step=0.1,
+        help="Lower values (0.0) give more focused and consistent outputs. Higher values (1.0) give more creative and varied outputs."
+    )
 
 st.markdown("---")
 
@@ -84,8 +96,13 @@ if user_input:
         # Set JIRA project key if provided
         if jira_project:
             jira_config.set_project_key(jira_project)
+            
+        # Set LLM temperature in state
+        state = {
+            "input": user_input,
+            "llm_temperature": llm_temperature
+        }
         
-        state = {"input": user_input}
         result = app.invoke(state)
         st.markdown("### 🤖 Response")
         

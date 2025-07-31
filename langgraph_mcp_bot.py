@@ -138,7 +138,12 @@ def test_case_node(state: ChatState) -> ChatState:
         state["test_cases"] = None
         
     if state.get("jira_context"):
-        state["test_cases"] = generate_test_cases(state["jira_context"])
+        # Get temperature from state or use default
+        temperature = state.get("llm_temperature", 0.7)
+        state["test_cases"] = generate_test_cases(
+            jira_content=state["jira_context"],
+            temperature=temperature
+        )
     
     return state
 
