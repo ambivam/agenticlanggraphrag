@@ -89,9 +89,15 @@ st.markdown("---")
 st.markdown("### 💬 Chat")
 st.caption("Order of sources: RAG ➜ MySQL ➜ Web Search (SerpAPI) ➜ JIRA")
 
-user_input = st.text_input("Enter your question:")
+# Search input and button in columns for better layout
+col1, col2 = st.columns([4, 1])
+with col1:
+    user_input = st.text_input("Enter your question:", key="search_input")
+with col2:
+    search_button = st.button("🔍 Search", type="primary", use_container_width=True)
 
-if user_input:
+# Only execute search when button is clicked and input is not empty
+if search_button and user_input:
     with st.spinner("Searching..."):
         # Set JIRA project key if provided
         if jira_project:
@@ -126,3 +132,6 @@ if user_input:
         if result.get("test_cases"):
             with st.expander("🧪 Test Cases", expanded=True):
                 st.markdown(result["test_cases"], unsafe_allow_html=True)
+
+elif search_button and not user_input:
+    st.error("⚠️ Please enter a question before searching")
