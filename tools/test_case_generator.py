@@ -212,8 +212,6 @@ def format_test_cases(issue: Dict[str, str], content: str, scenarios_per_categor
 {issue.get('description', 'No description provided')}
 ```
 </details>
-
-## 🎯 Generated Test Cases
 """]
     
     # Process test case sections
@@ -227,6 +225,9 @@ def format_test_cases(issue: Dict[str, str], content: str, scenarios_per_categor
     print("\n=== Raw Content ===\n")
     print(content)
     print("\n=== End Raw Content ===\n")
+    
+    # Combine all scenarios into a single section
+    all_scenarios = []
     
     # Process each section
     for i in range(len(section_matches)):
@@ -242,31 +243,6 @@ def format_test_cases(issue: Dict[str, str], content: str, scenarios_per_categor
         
         # Extract and clean section content
         section_content = content[section_matches[i].end():section_end].strip()
-        sections[section_title] = section_content
-        
-        # Debug: Print section info
-        print(f"\n=== Section Found ===\nTitle: {section_title}\nContent:\n{section_content}\n====================\n")
-    
-    # If no sections found, treat entire content as Happy Path
-    if not sections and content.strip():
-        sections['# Happy Path Cases'] = content.strip()
-    
-    # Process each test case section
-    test_case_sections = [
-        "# Happy Path Cases",
-        "# Positive Cases", 
-        "# Edge Cases",
-        "# Negative Cases",
-        "# Regression Cases",
-        "# System Cases",
-        "# Unit Tests",
-        "# User Acceptance Tests"
-    ]
-    
-    for title in test_case_sections:
-        section_content = sections.get(title, '')
-        if not section_content.strip():
-            section_content = f"Scenario: Basic test for {title.replace('#', '').strip()}\nGiven the system is ready\nWhen testing the {title.replace('#', '').strip().lower()}\nThen verify the expected behavior"
         
         # Clean up section content
         clean_section = section_content.strip()
@@ -288,29 +264,25 @@ def format_test_cases(issue: Dict[str, str], content: str, scenarios_per_categor
                 lines.append(line)  # Keep original spacing
             else:
                 lines.append(line.strip())
-        clean_section = '\n'.join(lines)
         
-        # Add formatted section
-        emoji_map = {
-            '# Happy Path Cases': '🎯',
-            '# Positive Cases': '✅',
-            '# Edge Cases': '🔄',
-            '# Negative Cases': '❌',
-            '# Regression Cases': '🔄',
-            '# System Cases': '🌐',
-            '# Unit Tests': '🧪',
-            '# User Acceptance Tests': '👥'
-        }
-        
-        emoji = emoji_map.get(title, 'ℹ️')
-        scenario_count = clean_section.count('Scenario:')
-        
-        formatted_content.append(f"""
-<details class='scenario-section'>
-<summary><strong>{emoji} {title.replace('#', '').strip()}</strong> ({scenario_count} scenarios)</summary>
+        # Add section content to combined scenarios
+        all_scenarios.append(clean_section)
+    
+    # If no sections found, add entire content
+    if not all_scenarios and content.strip():
+        all_scenarios.append(content.strip())
+    
+    # Combine all scenarios
+    combined_scenarios = '\n\n'.join(all_scenarios)
+    scenario_count = combined_scenarios.count('Scenario:')
+    
+    # Add formatted section
+    formatted_content.append(f"""
+<details class='scenario-section' open>
+<summary><strong>🧪 Test Scenarios</strong> ({scenario_count} scenarios)</summary>
 
 ```gherkin
-{clean_section}
+{combined_scenarios}
 ```
 </details>""")
     
