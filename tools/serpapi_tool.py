@@ -4,6 +4,7 @@ from serpapi import GoogleSearch
 from typing import List, Dict
 
 def get_serp_tool():
+    """Get the SerpAPI tool."""
     try:
         api_key = os.getenv('SERPAPI_API_KEY')
         if not api_key:
@@ -41,12 +42,17 @@ def get_serp_tool():
                 return None
         
         # Create tool
-        return Tool(
+        tool = Tool(
             name="web_search",
             description="Search the web for current information.",
             func=search_with_error_handling,
             return_direct=True
         )
+        
+        # Add identifier
+        tool.is_search_tool = True
+        
+        return tool
     except Exception as e:
         print(f"Error creating SerpAPI tool: {str(e)}")
         return None

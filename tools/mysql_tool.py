@@ -37,6 +37,9 @@ def get_mysql_agent():
             verbose=True
         )
         
+        # Add identifier
+        agent_executor.is_sql_agent = True
+        
         return agent_executor
     except Exception as e:
         print(f"Error creating MySQL agent: {str(e)}")

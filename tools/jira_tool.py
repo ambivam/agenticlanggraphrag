@@ -124,28 +124,23 @@ def search_jira_issues(query: str) -> Optional[str]:
             print("[DEBUG] Failed to get JIRA tool")
             return None
             
-        # Extract JIRA issue keys from the query
-        issue_keys = extract_jira_keys(query, jira_config.project_key)
-        print(f"[DEBUG] Extracted issue keys: {issue_keys}")
+        # Clean and parse query
+        clean_query = query.strip()
+        issue_keys = extract_issue_keys(clean_query)
         
-        # If no issue keys found, try text search
+        # Build JQL query
         if not issue_keys:
-            # Remove common JIRA-related phrases to clean the query
-            clean_query = clean_natural_language(query)
-            jql = f'project = {jira_config.project_key} AND text ~ "{clean_query}"'
-            print(f"[DEBUG] No issue keys found, performing text search: {clean_query}")
+            # Text search if no issue keys found
+            jql = f'text ~ "{clean_query}" ORDER BY created DESC'
         else:
             # Search by issue keys
             keys_clause = ' OR '.join(f'key = "{key}"' for key in issue_keys)
             jql = f'({keys_clause})'
-            print(f"[DEBUG] Searching by issue keys: {issue_keys}")
-            
-        print(f"[DEBUG] JIRA JQL: {jql}")
+        
+        # Search issues
         issues = jira.search_issues(jql, maxResults=5)
-        print(f"[DEBUG] JIRA Found Issues: {len(issues)}")
         
         if not issues:
-            print("[DEBUG] No issues found")
             return None
             
         # Format results
@@ -162,14 +157,14 @@ def search_jira_issues(query: str) -> Optional[str]:
                 f"**Description:**\n{issue.fields.description or 'No description'}\n"
             )
         
-        if len(issues) > 1:
-            response = f"Found {len(issues)} JIRA issues:\n\n" + "\n\n".join(results)
-        else:
-            response = "\n".join(results)
-            
-        print(f"[DEBUG] JIRA search response:\n{response}")
-        return response
+        # Add identifier
+        search_jira_issues.is_jira_tool = True
         
+        # Format response
+        if len(issues) > 1:
+            return f"Found {len(issues)} JIRA issues:\n\n" + "\n\n".join(results)
+        else:
+            return "\n".join(results)
     except Exception as e:
         print(f"Error searching JIRA: {str(e)}")
         print("[DEBUG] Full traceback:")

@@ -1,38 +1,88 @@
 import streamlit as st
 import os
 import tempfile
+from datetime import datetime
 from langgraph_mcp_bot import app
 from tools.file_upload import update_faiss_index
 from tools.jira_tool import jira_config
+from module_manager import module_manager
 
 st.set_page_config(page_title="MCP Chatbot", page_icon="🤖")
 st.title("🧠 LangGraph MCP Chatbot")
 
-# Initialize chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# Module Settings
+st.markdown("### 🔌 Module Settings")
 
-# File upload section
-st.markdown("### 📚 Upload Knowledge Base")
-st.caption("Upload PDF or text files to add to the chatbot's knowledge base")
+# Create columns for module checkboxes
+col1, col2 = st.columns(2)
 
-uploaded_files = st.file_uploader(
-    "Choose files",
-    accept_multiple_files=True,
-    type=["pdf", "txt", "docx", "xlsx", "xls", "csv", "pptx", "md", "json"],
-    help="Upload knowledge base documents (PDF, TXT, Word, Excel, CSV, PowerPoint, Markdown, or JSON)"
-)
+with col1:
+    if st.checkbox("Enable RAG", value=module_manager.is_enabled('rag'), key='rag_module'):
+        module_manager.enable_module('rag')
+    else:
+        module_manager.disable_module('rag')
+        
+    if st.checkbox("Enable SQL", value=module_manager.is_enabled('sql'), key='sql_module'):
+        module_manager.enable_module('sql')
+    else:
+        module_manager.disable_module('sql')
 
-# Show supported formats and size limit
-st.markdown("""
-    #### Supported Formats:
-    - Documents: PDF (.pdf), Text (.txt), Word (.docx)
-    - Data Files: Excel (.xlsx, .xls), CSV (.csv)
-    - Presentations: PowerPoint (.pptx)
-    - Other: Markdown (.md), JSON (.json)
+with col2:
+    if st.checkbox("Enable Search", value=module_manager.is_enabled('search'), key='search_module'):
+        module_manager.enable_module('search')
+    else:
+        module_manager.disable_module('search')
+        
+    if st.checkbox("Enable JIRA", value=module_manager.is_enabled('jira'), key='jira_module'):
+        module_manager.enable_module('jira')
+    else:
+        module_manager.disable_module('jira')
+
+# Show enabled modules status
+enabled_modules = [mod for mod, enabled in module_manager.modules.items() if enabled]
+if enabled_modules:
+    st.success(f"Enabled modules: {' ➜ '.join(enabled_modules).upper()}")
+else:
+    st.warning("No modules enabled. Please enable at least one module above.")
+
+st.markdown("---")
+
+# RAG Section
+if module_manager.is_enabled('rag'):
+    st.markdown("### 📚 RAG Module")
     
-    **Size Limit:** 200MB per file
-""")
+    # File upload
+    uploaded_files = st.file_uploader(
+        "Upload Knowledge Base Files",
+        accept_multiple_files=True,
+        type=["pdf", "txt", "docx", "xlsx", "xls", "csv", "pptx", "md", "json"],
+        help="Upload knowledge base documents"
+    )
+    
+    # Show supported formats
+    with st.expander("Supported Formats"):
+        st.markdown("""
+            - Documents: PDF (.pdf), Text (.txt), Word (.docx)
+            - Data Files: Excel (.xlsx, .xls), CSV (.csv)
+            - Presentations: PowerPoint (.pptx)
+            - Other: Markdown (.md), JSON (.json)
+            
+            **Size Limit:** 200MB per file
+        """)
+    
+    # RAG Query
+    rag_query = st.text_input("RAG Query", placeholder="Ask a question about your documents...")
+    if st.button("Search Knowledge Base") and rag_query:
+        with st.spinner("Searching knowledge base..."):
+            response = app.invoke({"input": rag_query})
+            if response.get("final_answer"):
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                output_file = os.path.join("output", f"rag_response_{timestamp}.txt")
+                with open(output_file, "w", encoding="utf-8") as f:
+                    f.write(f"Question: {rag_query}\n\nAnswer: {response['final_answer']}")
+                st.info(f"💾 Response saved to: {output_file}")
+else:
+    uploaded_files = None
 
 if uploaded_files:
     for uploaded_file in uploaded_files:
@@ -65,93 +115,48 @@ if uploaded_files:
             else:
                 st.error(f"❌ {status}")
 
-# Divider
-st.markdown("---")
+# Create output directory if it doesn't exist
+os.makedirs("output", exist_ok=True)
 
-# JIRA and LLM Settings
-st.markdown("### ⚙️ Settings")
-with st.expander("Search and Generation Settings", expanded=True):
-    # JIRA Project Key
-    st.markdown("#### 🎫 JIRA Project")
-    jira_project = st.text_input("Project Key", placeholder="e.g., PROJ")
-    st.caption("Enter the project key to search for issues in that project")
-    
-    # Add controls column
-    col1, col2 = st.columns(2)
-    
-    # Add temperature slider
+# Other Module Sections
+
+# SQL Module
+if module_manager.is_enabled('sql'):
+    st.markdown("### 🔎 SQL Module")
+    sql_query = st.text_input("SQL Query", placeholder="Enter your database query...")
+    if st.button("Run SQL Query") and sql_query:
+        with st.spinner("Running SQL query..."):
+            response = app.invoke({"input": sql_query})
+            if response.get("sql_context"):
+                st.code(response["sql_context"], language="sql")
+
+# Search Module
+if module_manager.is_enabled('search'):
+    st.markdown("### 🔍 Web Search Module")
+    search_query = st.text_input("Search Query", placeholder="Enter your search query...")
+    if st.button("Search Web") and search_query:
+        with st.spinner("Searching the web..."):
+            response = app.invoke({"input": search_query})
+            if response.get("serp_context"):
+                st.write(response["serp_context"])
+
+# JIRA Module
+if module_manager.is_enabled('jira'):
+    st.markdown("### 🎫 JIRA Module")
+    col1, col2 = st.columns([2, 1])
     with col1:
-        llm_temperature = st.slider(
-            "LLM Temperature",
-            min_value=0.0,
-            max_value=1.0,
-            value=0.7,
-            step=0.1,
-            help="Lower values (0.0) give more focused and consistent outputs. Higher values (1.0) give more creative and varied outputs."
-        )
-    
-    # Add test case count slider
+        jira_query = st.text_input("JIRA Query", placeholder="Search JIRA issues...")
     with col2:
-        scenarios_per_category = st.slider(
-            "Scenarios per Category",
-            min_value=5,
-            max_value=30,
-            value=10,
-            step=5,
-            help="Number of test scenarios to generate per category. More scenarios = more comprehensive testing but longer generation time."
-        )
-
-st.markdown("---")
-
-# Chat section
-st.markdown("### 💬 Chat")
-st.caption("Order of sources: RAG ➜ MySQL ➜ Web Search (SerpAPI) ➜ JIRA")
-
-# Display chat history
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"], unsafe_allow_html=True)
-
-# Chat input
-if user_question := st.chat_input("Ask your question here..."):
-    # Set JIRA project key if provided
-    if jira_project:
-        jira_config.set_project_key(jira_project)
+        jira_project = st.text_input("Project Key", placeholder="e.g., PROJ")
     
-    # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": user_question})
-    
-    # Display user message
-    with st.chat_message("user"):
-        st.write(user_question)
-    
-    # Get bot response
-    with st.chat_message("assistant"):
-        with st.spinner("Thinking..."):
-            # Check if this is a test case generation request
-            is_test_case_request = any(x in user_question.lower() for x in [
-                "generate test", "bdd", "gherkin", "scenario", "test case"
-            ])
-            
-            # Check if this is a continuation request
-            continue_previous = any(x in user_question.lower() for x in [
-                "more", "additional", "continue", "generate more"
-            ])
-            
-            # Invoke the LangGraph app with appropriate state
-            response = app.invoke({
-                "input": user_question,
-                "query": user_question,  # Used by test_case_node
-                "continue_previous": continue_previous if is_test_case_request else False,
-                "llm_temperature": llm_temperature,
-                "scenarios_per_category": scenarios_per_category
-            })
-            
-            # Extract the final answer
-            answer = response.get("final_answer", "I'm sorry, I couldn't process your request.")
-            
-            # Display the response
-            st.markdown(answer, unsafe_allow_html=True)
-            
-            # Add assistant's response to chat history
-            st.session_state.messages.append({"role": "assistant", "content": answer})
+    if st.button("Search JIRA") and jira_query:
+        if jira_project:
+            jira_config.set_project_key(jira_project)
+        with st.spinner("Searching JIRA..."):
+            response = app.invoke({"input": jira_query})
+            if response.get("jira_context"):
+                st.write(response["jira_context"])
+
+# Set default values
+llm_temperature = 0.7
+scenarios_per_category = 10

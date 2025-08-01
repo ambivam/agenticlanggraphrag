@@ -1,0 +1,5 @@
+Question: what is copilot
+
+Answer: From knowledge base: <details class='error-section' open>
+<summary><strong>⚠️ No JIRA Issues Found</strong></summary>
+No valid JIRA issues were found in the provided content.</details>

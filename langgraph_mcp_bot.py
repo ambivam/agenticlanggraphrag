@@ -7,6 +7,7 @@ from tools.mysql_tool import get_mysql_agent
 from tools.serpapi_tool import get_serp_tool
 from tools.jira_tool import search_jira_issues, jira_config
 from tools.test_case_generator import generate_test_cases
+from module_manager import module_manager
 
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
@@ -26,12 +27,37 @@ class ChatState(TypedDict, total=False):
     found: bool
 
 # Initialize tools
-rag_chain = get_rag_chain()
-mysql_agent = get_mysql_agent()
-serp_tool = get_serp_tool()
+def get_tools(temperature=0.7):
+    """Get the tools for the agent based on enabled modules."""
+    tools = []
+    
+    if module_manager.is_enabled('rag'):
+        tools.append(get_rag_chain())
+    if module_manager.is_enabled('sql'):
+        tools.append(get_mysql_agent())
+    if module_manager.is_enabled('search'):
+        tools.append(get_serp_tool())
+    if module_manager.is_enabled('jira'):
+        tools.append(search_jira_issues)
+        tools.append(generate_test_cases)  # Add test case generator only if JIRA is enabled
+    
+    return tools
+
+tools = get_tools()
+
+def invoke_tool(tool, input_text):
+    """Invoke a tool that could be either a function or an object with invoke method."""
+    if callable(tool) and not hasattr(tool, 'invoke'):
+        return tool(input_text)
+    return tool.invoke(input_text)
 
 def rag_node(state: ChatState) -> ChatState:
-    # Initialize state fields
+    """RAG node that processes knowledge base queries."""
+    tools = get_tools()
+    if not module_manager.is_enabled('rag') or not tools:
+        return state
+    
+    # Initialize state fields if not present
     if "found" not in state:
         state["found"] = False
     if "rag_context" not in state:
@@ -43,7 +69,7 @@ def rag_node(state: ChatState) -> ChatState:
     if "final_answer" not in state:
         state["final_answer"] = None
         
-    response = rag_chain.invoke(state["input"])
+    response = invoke_tool(tools[0], state["input"])  # RAG is always first if enabled
     if isinstance(response, dict):
         response_text = response.get('result', '')
     else:
@@ -58,11 +84,22 @@ def rag_node(state: ChatState) -> ChatState:
     return state
 
 def mysql_node(state: ChatState) -> ChatState:
+    """MySQL node that processes SQL queries."""
+    tools = get_tools()
+    if not module_manager.is_enabled('sql') or len(tools) < 2:
+        return state
+    
     try:
-        # Run MySQL agent and get response
-        response = mysql_agent.run(state["input"])
+        sql_tool = None
+        for tool in tools:
+            if hasattr(tool, 'is_sql_agent'):
+                sql_tool = tool
+                break
         
-        # Clean up the result
+        if not sql_tool:
+            return state
+            
+        response = invoke_tool(sql_tool, state["input"])
         result = str(response).strip()
         
         # Check if we got a meaningful result
@@ -87,39 +124,51 @@ def mysql_node(state: ChatState) -> ChatState:
     return state
 
 def serp_node(state: ChatState) -> ChatState:
-    if not serp_tool:  # If tool wasn't created successfully
-        state["serp_context"] = None
-        state["found"] = False
+    """Web search node that processes search queries."""
+    tools = get_tools()
+    if not module_manager.is_enabled('search') or len(tools) < 3:
+        return state
+    
+    search_tool = None
+    for tool in tools:
+        if hasattr(tool, 'is_search_tool'):
+            search_tool = tool
+            break
+            
+    if not search_tool:
         return state
         
-    try:
-        response = serp_tool.run(state["input"])
-        if response:  # Only set context if we got a valid response
-            state["serp_context"] = response
-            state["found"] = True
-        else:
-            state["serp_context"] = None
-            state["found"] = False
-    except Exception as e:
-        print(f"SerpAPI Error: {str(e)}")
+    response = invoke_tool(search_tool, state["input"])
+    if response:  # Only set context if we got a valid response
+        state["serp_context"] = response
+        state["found"] = True
+    else:
         state["serp_context"] = None
         state["found"] = False
     return state
 
 def jira_node(state: ChatState) -> ChatState:
-    # Initialize state fields if not present
-    if "jira_context" not in state:
-        state["jira_context"] = None
-    if "found" not in state:
-        state["found"] = False
-        
+    """JIRA node that processes JIRA queries."""
+    tools = get_tools()
+    if not module_manager.is_enabled('jira') or len(tools) < 4:
+        return state
+    
     if not jira_config.is_configured():
         state["jira_context"] = None
         state["found"] = False
         return state
-        
+    
     try:
-        response = search_jira_issues(state["input"])
+        jira_tool = None
+        for tool in tools:
+            if hasattr(tool, 'is_jira_tool'):
+                jira_tool = tool
+                break
+                
+        if not jira_tool:
+            return state
+            
+        response = invoke_tool(jira_tool, state["input"])
         if response:  # Only set context if we got a valid response
             state["jira_context"] = response
             state["found"] = True
@@ -153,33 +202,27 @@ def test_case_node(state: ChatState) -> ChatState:
     return state
 
 def final_answer_node(state: ChatState) -> ChatState:
-    # Initialize final answer
+    """Combine all available context into a final answer."""
     state['final_answer'] = ""
     sources = []
     
-    # Check RAG result
-    if state.get('rag_context') and state.get('rag_context') != 'None':
+    if module_manager.is_enabled('rag') and state.get("rag_context"):
         sources.append(f"From knowledge base: {state['rag_context']}")
     
-    # Check MySQL result
-    if state.get('sql_context') and state.get('sql_context') != 'None':
+    if module_manager.is_enabled('sql') and state.get("sql_context"):
         sources.append(f"From database: {state['sql_context']}")
     
-    # Check web search result
-    if state.get('serp_context') and state.get('serp_context') != 'None':
+    if module_manager.is_enabled('search') and state.get("serp_context"):
         sources.append(f"From web search: {state['serp_context']}")
-        
-    # Check JIRA result and test cases
-    if state.get('jira_context') and state.get('jira_context') != 'None':
-        sources.append(f"From JIRA: {state['jira_context']}")
-        if state.get('test_cases'):
-            sources.append(f"\n\nGenerated Test Cases:\n{state['test_cases']}")
     
-    # Combine all found sources
+    if module_manager.is_enabled('jira') and state.get("jira_context"):
+        sources.append(f"From JIRA: {state['jira_context']}")
+    
+    # Combine context into final answer
     if sources:
-        state['final_answer'] = "\n".join(sources)
+        state["final_answer"] = "\n\n".join(sources)
     else:
-        state['final_answer'] = "I could not find relevant information from any of the available sources (knowledge base, database, or web search)."
+        state["final_answer"] = "No relevant information found from enabled modules."
     
     return state
 
@@ -191,43 +234,72 @@ def has_jira_results(state: ChatState) -> bool:
     """Check if JIRA results are present."""
     return bool(state.get("jira_context"))
 
+def get_next_node(state: ChatState) -> str:
+    """Determine which node to process next based on enabled modules and current node."""
+    current_node = state.get("current_node", "entry")
+    
+    if current_node == "entry":
+        if module_manager.is_enabled('rag'):
+            state["current_node"] = "RAG"
+            return "RAG"
+        if module_manager.is_enabled('sql'):
+            state["current_node"] = "MySQL"
+            return "MySQL"
+        if module_manager.is_enabled('search'):
+            state["current_node"] = "WebSearch"
+            return "WebSearch"
+        if module_manager.is_enabled('jira'):
+            state["current_node"] = "JIRA"
+            return "JIRA"
+        return "Answer"
+    
+    # After any module, go directly to Answer
+    return "Answer"
+
+def entry_node(state: ChatState) -> ChatState:
+    """Entry node that initializes state."""
+    state["current_node"] = "entry"
+    return state
+
 # LangGraph flow
 graph = StateGraph(ChatState)
 
-# Set entry point - always start with RAG
-graph.set_entry_point("RAG")
-
 # Add nodes
+graph.add_node("entry", entry_node)
 graph.add_node("RAG", rag_node)
-graph.add_node("TestCases", test_case_node)
 graph.add_node("MySQL", mysql_node)
 graph.add_node("WebSearch", serp_node)
 graph.add_node("JIRA", jira_node)
+graph.add_node("TestCases", test_case_node)
 graph.add_node("Answer", final_answer_node)
 
-# Define edges for sequential flow:
-# RAG -> MySQL -> WebSearch -> [JIRA] -> Answer
+# Set entry point
+graph.set_entry_point("entry")
 
-# After RAG, always try MySQL next
-graph.add_edge("RAG", "MySQL")
-
-# After MySQL, always try WebSearch next
-graph.add_edge("MySQL", "WebSearch")
-
-# After WebSearch, conditionally go to JIRA or Answer
+# Add conditional edges from entry and modules
 graph.add_conditional_edges(
-    "WebSearch",
-    should_use_jira,
-    {True: "JIRA", False: "Answer"}
+    "entry",
+    get_next_node,
+    {
+        "RAG": "RAG",
+        "MySQL": "MySQL",
+        "WebSearch": "WebSearch",
+        "JIRA": "JIRA",
+        "Answer": "Answer"
+    }
 )
 
-# After JIRA, conditionally go to TestCases or Answer
+# Add edges from modules to Answer
+graph.add_edge("RAG", "Answer")
+graph.add_edge("MySQL", "Answer")
+graph.add_edge("WebSearch", "Answer")
+
+# JIRA can optionally go through TestCases
 graph.add_conditional_edges(
     "JIRA",
     has_jira_results,
     {True: "TestCases", False: "Answer"}
 )
-
 graph.add_edge("TestCases", "Answer")
 
 # Set finish point
