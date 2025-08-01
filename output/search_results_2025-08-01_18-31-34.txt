@@ -1,0 +1,56 @@
+Search Query: what is copilot
+Timestamp: 2025-08-01_18-31-34
+Number of Results: 3
+
+=== Search Results ===
+
+Document 1:
+Source: C:\asap_agenticrag\agenticlanggraphrag\modules\..\temp\Copilot_Comparison_Summary.pdf
+Content:
+Microsoft Copilot vs GitHub Copilot - Detailed Comparison
+This document provides a detailed comparison between Microsoft Copilot and GitHub Copilot based on their
+features, use cases, and capabilities.
+Date: 2025-07-15
+--------------------------------------------------------------------------------
+
+Document 2:
+Source: C:\asap_agenticrag\agenticlanggraphrag\modules\..\temp\Copilot_Comparison_Summary.pdf
+Content:
+Best Use Cases
+Where to Use Microsoft Copilot:
+- Writing and formatting emails, reports, and documents
+- Creating presentations and spreadsheets
+- Analyzing business data in Excel
+- Automating workflows with Power Platform
+- Scheduling meetings, summarizing discussions
+- Collaborating in Teams and Outlook
+- Voice-based interactions and image generation
+Where to Use GitHub Copilot:
+- Writing, completing, and refactoring code
+- Learning new programming languages
+- Debugging and testing code
+- Generating documentation and comments
+- Collaborating on code reviews
+- Automating development tasks via GitHub Actions
+- Working in IDEs like VS Code, JetBrains, Xcode
+- Managing repositories and pull requests
+--------------------------------------------------------------------------------
+
+Document 3:
+Source: C:\asap_agenticrag\agenticlanggraphrag\modules\..\temp\Copilot_Comparison_Summary.pdf
+Content:
+Feature Comparison Table
+Feature Category          | Microsoft Copilot                             | GitHub Copilot
+------------------------------------------------------------------------------------------------------------------------
+Task Management           | Business task automation, meeting scheduling  | Development task automation, issue
+assignment
+Knowledge Base            | Microsoft ecosystem knowledge                 | Programming languages, frameworks,
+open-sourc
+Testing Capabilities      | Document review, data validation              | Code testing, test case generation,
+debugging
+Deployment Options        | Cloud SaaS, on-premises hybrid                | Cloud-based with local IDE plugins
+API Integration           | Microsoft Graph API, Power Platform connector | GitHub API, repository webhooks,
+third-party
+Voice Capabilities        | Natural voice conversations in 40+ languages, | Limited voice support, primarily
+text-based
+--------------------------------------------------------------------------------
