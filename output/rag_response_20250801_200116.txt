@@ -1,3 +1,0 @@
-Question: what is copilot
-
-Answer: From knowledge base: Copilot can refer to different tools depending on the context. In the context of the provided information, there are two specific types of Copilot being discussed: Microsoft Copilot and GitHub Copilot. Microsoft Copilot and GitHub Copilot are AI-powered tools developed by Microsoft and GitHub respectively, with each serving different purposes. Microsoft Copilot is focused on assisting with various tasks like writing emails, creating presentations, analyzing data, etc., while GitHub Copilot is tailored for assisting with coding-related tasks such as writing, debugging, and collaborating on code projects.

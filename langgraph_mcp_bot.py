@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 from typing import TypedDict, Optional, List, Dict, Any
 
@@ -240,6 +241,33 @@ def final_answer_node(state: ChatState) -> ChatState:
         state["final_answer"] = "\n\n".join(sources)
     else:
         state["final_answer"] = "No relevant information found from enabled modules."
+    
+    # Save response to output directory
+    if state["final_answer"]:
+        output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Create timestamped filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Determine module type
+        module_type = "unknown"
+        if module_manager.is_enabled('rag') and state.get("rag_context"):
+            module_type = "rag"
+        elif module_manager.is_enabled('sql') and state.get("sql_context"):
+            module_type = "sql"
+        elif module_manager.is_enabled('search') and state.get("serp_context"):
+            module_type = "search"
+        elif module_manager.is_enabled('jira') and state.get("jira_context"):
+            module_type = "jira"
+        
+        # Save response
+        filename = f"{module_type}_response_{timestamp}.txt"
+        filepath = os.path.join(output_dir, filename)
+        
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(f"Question: {state['input']}\n\n")
+            f.write(state["final_answer"])
     
     return state
 
