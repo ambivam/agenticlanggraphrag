@@ -136,7 +136,7 @@ def mysql_node(state: ChatState) -> ChatState:
 def serp_node(state: ChatState) -> ChatState:
     """Web search node that processes search queries."""
     tools = get_tools()
-    if not module_manager.is_enabled('search') or len(tools) < 3:
+    if not module_manager.is_enabled('search') or not tools:
         return state
     
     search_tool = None
