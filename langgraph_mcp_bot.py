@@ -38,8 +38,7 @@ def get_tools(temperature=0.7):
     if module_manager.is_enabled('search'):
         tools.append(get_serp_tool())
     if module_manager.is_enabled('jira'):
-        tools.append(search_jira_issues)
-        tools.append(generate_test_cases)  # Add test case generator only if JIRA is enabled
+        tools.extend(get_jira_tools())
     
     return tools
 
@@ -69,7 +68,17 @@ def rag_node(state: ChatState) -> ChatState:
     if "final_answer" not in state:
         state["final_answer"] = None
         
-    response = invoke_tool(tools[0], state["input"])  # RAG is always first if enabled
+    # Find RAG tool
+    rag_tool = None
+    for tool in tools:
+        if hasattr(tool, 'is_rag_tool'):
+            rag_tool = tool
+            break
+            
+    if not rag_tool:
+        return state
+        
+    response = invoke_tool(rag_tool, state["input"])
     if isinstance(response, dict):
         response_text = response.get('result', '')
     else:
@@ -86,7 +95,7 @@ def rag_node(state: ChatState) -> ChatState:
 def mysql_node(state: ChatState) -> ChatState:
     """MySQL node that processes SQL queries."""
     tools = get_tools()
-    if not module_manager.is_enabled('sql') or len(tools) < 2:
+    if not module_manager.is_enabled('sql') or not tools:
         return state
     
     try:
@@ -150,7 +159,7 @@ def serp_node(state: ChatState) -> ChatState:
 def jira_node(state: ChatState) -> ChatState:
     """JIRA node that processes JIRA queries."""
     tools = get_tools()
-    if not module_manager.is_enabled('jira') or len(tools) < 4:
+    if not module_manager.is_enabled('jira') or not tools:
         return state
     
     if not jira_config.is_configured():
@@ -159,19 +168,27 @@ def jira_node(state: ChatState) -> ChatState:
         return state
     
     try:
+        # Find JIRA tool
         jira_tool = None
+        test_case_gen = None
         for tool in tools:
             if hasattr(tool, 'is_jira_tool'):
                 jira_tool = tool
-                break
+            elif hasattr(tool, 'is_test_case_generator'):
+                test_case_gen = tool
                 
         if not jira_tool:
             return state
             
+        # Search JIRA issues
         response = invoke_tool(jira_tool, state["input"])
         if response:  # Only set context if we got a valid response
             state["jira_context"] = response
             state["found"] = True
+            
+            # Generate test cases if available
+            if test_case_gen and state.get("jira_context"):
+                state["test_cases"] = invoke_tool(test_case_gen, state["jira_context"])
         else:
             state["jira_context"] = None
             state["found"] = False

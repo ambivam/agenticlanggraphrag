@@ -1,0 +1,3 @@
+Question: which is popular Github copilot or Microsoft Copilot
+
+Answer: From knowledge base: As of the provided context, GitHub Copilot seems to be more focused on coding-related tasks, making it popular among developers who work on coding projects. On the other hand, Microsoft Copilot appears to be geared towards a broader range of tasks like writing emails, reports, and working with business data. Both have their respective popularity within their target user groups.

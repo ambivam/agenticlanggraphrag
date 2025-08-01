@@ -3,6 +3,14 @@ from langchain.tools import Tool
 from serpapi import GoogleSearch
 from typing import List, Dict
 
+class SearchTool:
+    def __init__(self, search_tool):
+        self.search_tool = search_tool
+        self.is_search_tool = True
+    
+    def invoke(self, input_text):
+        return self.search_tool.invoke(input_text)
+
 def get_serp_tool():
     """Get the SerpAPI tool."""
     try:
@@ -49,10 +57,8 @@ def get_serp_tool():
             return_direct=True
         )
         
-        # Add identifier
-        tool.is_search_tool = True
-        
-        return tool
+        # Wrap tool in our custom class
+        return SearchTool(tool)
     except Exception as e:
         print(f"Error creating SerpAPI tool: {str(e)}")
         return None

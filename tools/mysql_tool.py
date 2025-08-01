@@ -5,6 +5,14 @@ from langchain.agents.agent_types import AgentType
 from langchain_openai import ChatOpenAI
 import os
 
+class SQLAgent:
+    def __init__(self, agent_executor):
+        self.agent_executor = agent_executor
+        self.is_sql_agent = True
+    
+    def invoke(self, input_text):
+        return self.agent_executor.invoke(input_text)
+
 def get_mysql_agent():
     try:
         # Get MySQL configuration from environment variables
@@ -17,7 +25,6 @@ def get_mysql_agent():
         if not all([user, password, host, database]):
             raise ValueError("Missing required MySQL environment variables")
             
-        # Create connection string
         # Create connection string with proper escaping
         from urllib.parse import quote_plus
         password = quote_plus(password)  # Escape special characters in password
@@ -37,10 +44,8 @@ def get_mysql_agent():
             verbose=True
         )
         
-        # Add identifier
-        agent_executor.is_sql_agent = True
-        
-        return agent_executor
+        # Wrap agent in our custom class
+        return SQLAgent(agent_executor)
     except Exception as e:
         print(f"Error creating MySQL agent: {str(e)}")
         # Return a dummy agent that will inform the user about the database connection issue

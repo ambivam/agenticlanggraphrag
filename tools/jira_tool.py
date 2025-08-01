@@ -102,7 +102,14 @@ def clean_natural_language(query: str) -> str:
     
     return clean_query
 
-def search_jira_issues(query: str) -> Optional[str]:
+def extract_issue_keys(query: str) -> List[str]:
+    """Extract issue keys from query."""
+    # Pattern matches PROJECT-123 format, allowing for comma/space separation
+    pattern = fr'{jira_config.project_key}-\d+'
+    matches = re.findall(pattern, query)
+    return list(set(matches))  # Remove duplicates
+
+def search_jira_issues(query: str) -> str:
     """Search for JIRA issues by issue key or text search.
     
     Args:
@@ -157,9 +164,6 @@ def search_jira_issues(query: str) -> Optional[str]:
                 f"**Description:**\n{issue.fields.description or 'No description'}\n"
             )
         
-        # Add identifier
-        search_jira_issues.is_jira_tool = True
-        
         # Format response
         if len(issues) > 1:
             return f"Found {len(issues)} JIRA issues:\n\n" + "\n\n".join(results)
@@ -167,9 +171,29 @@ def search_jira_issues(query: str) -> Optional[str]:
             return "\n".join(results)
     except Exception as e:
         print(f"Error searching JIRA: {str(e)}")
-        print("[DEBUG] Full traceback:")
-        traceback.print_exc()
         return None
+
+class TestCaseGenerator:
+    def __init__(self):
+        self.is_test_case_generator = True
+    
+    def invoke(self, input_text):
+        return generate_test_cases(input_text)
+
+def get_jira_tools():
+    """Get the JIRA tools."""
+    try:
+        tools = []
+        jira_tool = JIRATool()
+        test_case_gen = TestCaseGenerator()
+        
+        if jira_config.is_configured():
+            tools.extend([jira_tool, test_case_gen])
+            
+        return tools
+    except Exception as e:
+        print(f"Error creating JIRA tools: {str(e)}")
+        return []
 
 # Initialize global JIRA config
 jira_config = JiraConfig()
