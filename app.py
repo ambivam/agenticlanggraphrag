@@ -2,6 +2,29 @@ import streamlit as st
 import os
 import tempfile
 from datetime import datetime
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+env_path = Path(__file__).parent / '.env'
+env_sample_path = Path(__file__).parent / '.env.sample'
+
+print(f"Loading .env from: {env_path}")
+print(f"Sample env path: {env_sample_path}")
+
+# Try loading .env, fallback to .env.sample
+if env_path.exists():
+    print("Found .env file, loading...")
+    load_dotenv(dotenv_path=env_path)
+else:
+    print(".env not found, checking .env.sample...")
+    if env_sample_path.exists():
+        print("Loading from .env.sample")
+        load_dotenv(dotenv_path=env_sample_path)
+    else:
+        print("No environment files found!")
+
+# Import after env vars are loaded
 from langgraph_mcp_bot import app
 from tools.file_upload import update_faiss_index
 from tools.jira_tool import jira_config
@@ -143,19 +166,130 @@ if module_manager.is_enabled('search'):
 # JIRA Module
 if module_manager.is_enabled('jira'):
     st.markdown("### 🎫 JIRA Module")
+    
+    # Initialize config in session state
+    if 'jira_config' not in st.session_state:
+        # Try to load from environment first
+        st.session_state.jira_config = {
+            'url': os.getenv("JIRA_URL", ""),
+            'username': os.getenv("JIRA_USERNAME", ""),
+            'token': os.getenv("JIRA_API_TOKEN", ""),
+            'project_key': os.getenv("JIRA_PROJECT_KEY", ""),
+            'openai_key': os.getenv("OPENAI_API_KEY", "")
+        }
+        print("\nInitial JIRA config from env:")
+        print(f"URL: {st.session_state.jira_config['url']}")
+        print(f"Username: {st.session_state.jira_config['username']}")
+        print(f"Project Key: {st.session_state.jira_config['project_key']}")
+    
+    # JIRA Configuration
+    with st.expander("JIRA Configuration"):
+        # Show current config status
+        if jira_config.is_configured():
+            st.success("✅ JIRA is configured")
+        else:
+            st.warning("⚠️ JIRA needs configuration")
+        
+        # Configuration form
+        with st.form("jira_config_form"):
+            new_url = st.text_input(
+                "JIRA URL", 
+                value=st.session_state.jira_config['url'],
+                placeholder="https://your-domain.atlassian.net"
+            )
+            new_username = st.text_input(
+                "JIRA Username", 
+                value=st.session_state.jira_config['username'],
+                placeholder="your.email@company.com"
+            )
+            new_token = st.text_input(
+                "JIRA API Token", 
+                value=st.session_state.jira_config['token'],
+                type="password"
+            )
+            new_project_key = st.text_input(
+                "Default Project Key", 
+                value=st.session_state.jira_config['project_key'],
+                placeholder="e.g., PROJ"
+            )
+            
+            st.markdown("### OpenAI Configuration")
+            st.info("OpenAI API key is required for test case generation")
+            
+            new_openai_key = st.text_input(
+                "OpenAI API Key",
+                value=st.session_state.jira_config['openai_key'],
+                type="password",
+                help="Get your API key from https://platform.openai.com/account/api-keys"
+            )
+            
+            if st.form_submit_button("Save Configuration"):
+                print("\nSaving JIRA Configuration:")
+                
+                # Update session state
+                st.session_state.jira_config.update({
+                    'url': new_url,
+                    'username': new_username,
+                    'token': new_token,
+                    'project_key': new_project_key,
+                    'openai_key': new_openai_key
+                })
+                
+                print(f"URL: {new_url}")
+                print(f"Username: {new_username}")
+                print(f"Project Key: {new_project_key}")
+                
+                # Create .env file if it doesn't exist
+                env_path = Path(__file__).parent / '.env'
+                
+                # Get existing OpenAI key if present
+                openai_key = os.getenv('OPENAI_API_KEY', '')
+                
+                env_content = f"""# JIRA Configuration
+JIRA_URL={new_url}
+JIRA_USERNAME={new_username}
+JIRA_API_TOKEN={new_token}
+JIRA_PROJECT_KEY={new_project_key}
+
+# OpenAI Configuration
+OPENAI_API_KEY={openai_key}
+"""
+                
+                print(f"Writing config to: {env_path}")
+                with open(env_path, 'w') as f:
+                    f.write(env_content)
+                
+                # Force reload environment
+                load_dotenv(dotenv_path=env_path, override=True)
+                
+                # Update JIRA config object
+                jira_config.reload_config()
+                
+                if jira_config.is_configured():
+                    st.success("✅ JIRA configuration saved!")
+                else:
+                    st.error("❌ Please fill in all JIRA configuration fields")
+    
+    # JIRA Search
     col1, col2 = st.columns([2, 1])
     with col1:
         jira_query = st.text_input("JIRA Query", placeholder="Search JIRA issues...")
     with col2:
-        jira_project = st.text_input("Project Key", placeholder="e.g., PROJ")
+        search_project = st.text_input("Override Project Key", placeholder="e.g., PROJ")
     
     if st.button("Search JIRA") and jira_query:
-        if jira_project:
-            jira_config.set_project_key(jira_project)
-        with st.spinner("Searching JIRA..."):
-            response = app.invoke({"input": jira_query})
-            if response.get("jira_context"):
-                st.write(response["jira_context"])
+        if not jira_config.is_configured():
+            st.error("❌ Please configure JIRA settings first")
+        else:
+            if search_project:
+                jira_config.set_project_key(search_project)
+            with st.spinner("Searching JIRA..."):
+                response = app.invoke({"input": jira_query})
+                if response.get("jira_context"):
+                    st.write(response["jira_context"])
+                    if response.get("test_cases"):
+                        st.markdown("### 🧪 Generated Test Cases")
+                        st.markdown(response["test_cases"])
 
 # Set default values
 llm_temperature = 0.7

@@ -11,16 +11,77 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Initialize conversation memory
-test_case_memory = ConversationBufferMemory(
-    memory_key="chat_history",
-    return_messages=True
-)
-
-# Get OpenAI API key from environment
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-if not OPENAI_API_KEY:
-    raise ValueError("OPENAI_API_KEY environment variable is required for test case generation")
+class TestCaseGenerator:
+    """Test case generator using OpenAI."""
+    
+    def __init__(self):
+        """Initialize test case generator."""
+        self.is_test_case_generator = True
+        
+        # Check for OpenAI key
+        openai_key = os.getenv('OPENAI_API_KEY')
+        if not openai_key:
+            print("\nOpenAI API key not found!")
+            print("Please add your OpenAI API key in the JIRA Configuration section.")
+            raise ValueError("OPENAI_API_KEY environment variable is required for test case generation")
+            
+        print("\nInitializing test case generator...")
+        self.memory = ConversationBufferMemory(
+            memory_key="chat_history",
+            return_messages=True
+        )
+        
+        # Initialize chat model
+        self.chat = ChatOpenAI(
+            temperature=0.7,
+            model="gpt-4",
+            openai_api_key=openai_key
+        )
+    
+    def invoke(self, jira_content: str, temperature: float = 0.7, scenarios_per_category: int = 10, continue_previous: bool = False) -> Optional[str]:
+        """Generate test cases for a JIRA issue.
+        
+        Args:
+            jira_content: JIRA issue content
+            temperature: Temperature for test case generation (0.0-1.0)
+            scenarios_per_category: Number of scenarios per category
+            continue_previous: Whether to continue from previous test cases
+            
+        Returns:
+            str: Generated test cases in Gherkin format
+        """
+        try:
+            # Parse JIRA issue
+            issue = parse_jira_issues(jira_content)
+            if not issue:
+                return None
+                
+            # Create prompt
+            prompt = create_test_case_prompt(issue, scenarios_per_category)
+            
+            # Get previous test cases if continuing
+            if continue_previous:
+                history = self.memory.chat_memory.messages
+                for msg in history:
+                    if isinstance(msg, BaseMessage) and 'Scenario:' in msg.content:
+                        prompt += f"\n\nPreviously generated test cases:\n{msg.content}"
+            
+            # Generate test cases
+            response = self.chat.predict(prompt, temperature=temperature)
+            
+            # Format test cases
+            formatted = format_test_cases(issue, response, scenarios_per_category)
+            
+            # Store in memory
+            if formatted and not any(msg.content == formatted for msg in self.memory.chat_memory.messages):
+                self.memory.chat_memory.add_user_message(formatted)
+            
+            return formatted
+            
+        except Exception as e:
+            error_details = f"Error generating test cases: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+            print(error_details, file=sys.stderr)
+            return f"<details class='error-section' open>\n<summary><strong> Error Generating Test Cases</strong></summary>\n\n```\n{error_details}\n```\n</details>"
 
 def create_test_case_prompt(issue: Dict[str, str], scenarios_per_category: int = 10) -> str:
     """Create a detailed prompt for test case generation.

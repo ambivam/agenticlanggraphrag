@@ -6,8 +6,7 @@ from typing import TypedDict, Optional, List, Dict, Any
 from tools.rag_tool import get_rag_chain
 from tools.mysql_tool import get_mysql_agent
 from tools.serpapi_tool import get_serp_tool
-from tools.jira_tool import search_jira_issues, jira_config
-from tools.test_case_generator import generate_test_cases
+from tools.jira_tool import get_jira_tools, jira_config
 from module_manager import module_manager
 
 from langchain_openai import ChatOpenAI
@@ -32,24 +31,43 @@ def get_tools(temperature=0.7):
     """Get the tools for the agent based on enabled modules."""
     tools = []
     
+    print("\nGetting Tools:")
+    print(f"RAG Enabled: {module_manager.is_enabled('rag')}")
+    print(f"SQL Enabled: {module_manager.is_enabled('sql')}")
+    print(f"Search Enabled: {module_manager.is_enabled('search')}")
+    print(f"JIRA Enabled: {module_manager.is_enabled('jira')}")
+    
     if module_manager.is_enabled('rag'):
+        print("Adding RAG tool...")
         tools.append(get_rag_chain())
     if module_manager.is_enabled('sql'):
+        print("Adding SQL tool...")
         tools.append(get_mysql_agent())
     if module_manager.is_enabled('search'):
+        print("Adding Search tool...")
         tools.append(get_serp_tool())
     if module_manager.is_enabled('jira'):
-        tools.extend(get_jira_tools())
+        print("Adding JIRA tools...")
+        jira_tools = get_jira_tools()
+        print(f"JIRA tools found: {len(jira_tools)}")
+        tools.extend(jira_tools)
     
+    print(f"Total tools: {len(tools)}")
     return tools
 
 tools = get_tools()
 
-def invoke_tool(tool, input_text):
-    """Invoke a tool that could be either a function or an object with invoke method."""
+def invoke_tool(tool, input_text, **kwargs):
+    """Invoke a tool that could be either a function or an object with invoke method.
+    
+    Args:
+        tool: The tool to invoke
+        input_text: The input text for the tool
+        **kwargs: Additional arguments to pass to the tool
+    """
     if callable(tool) and not hasattr(tool, 'invoke'):
-        return tool(input_text)
-    return tool.invoke(input_text)
+        return tool(input_text, **kwargs)
+    return tool.invoke(input_text, **kwargs)
 
 def rag_node(state: ChatState) -> ChatState:
     """RAG node that processes knowledge base queries."""
@@ -159,11 +177,21 @@ def serp_node(state: ChatState) -> ChatState:
 
 def jira_node(state: ChatState) -> ChatState:
     """JIRA node that processes JIRA queries."""
+    print(f"JIRA Node - Input: {state.get('input')}")
+    print(f"JIRA Node - Module Enabled: {module_manager.is_enabled('jira')}")
+    
     tools = get_tools()
+    print(f"JIRA Node - Tools Found: {len(tools)}")
+    
     if not module_manager.is_enabled('jira') or not tools:
+        print("JIRA Node - Module disabled or no tools found")
         return state
     
+    print(f"JIRA Node - Config Status: {jira_config.is_configured()}")
+    print(f"JIRA Node - Project Key: {jira_config.project_key}")
+    
     if not jira_config.is_configured():
+        print("JIRA Node - JIRA not configured")
         state["jira_context"] = None
         state["found"] = False
         return state
@@ -175,48 +203,77 @@ def jira_node(state: ChatState) -> ChatState:
         for tool in tools:
             if hasattr(tool, 'is_jira_tool'):
                 jira_tool = tool
+                print("JIRA Node - Found JIRA tool")
             elif hasattr(tool, 'is_test_case_generator'):
                 test_case_gen = tool
+                print("JIRA Node - Found test case generator")
                 
         if not jira_tool:
+            print("JIRA Node - No JIRA tool found")
             return state
             
         # Search JIRA issues
+        print("JIRA Node - Searching JIRA...")
         response = invoke_tool(jira_tool, state["input"])
+        print(f"JIRA Node - Search Response: {bool(response)}")
+        
         if response:  # Only set context if we got a valid response
             state["jira_context"] = response
             state["found"] = True
+            print("JIRA Node - Found JIRA content")
             
             # Generate test cases if available
             if test_case_gen and state.get("jira_context"):
+                print("JIRA Node - Generating test cases...")
                 state["test_cases"] = invoke_tool(test_case_gen, state["jira_context"])
+                print(f"JIRA Node - Test Cases Generated: {bool(state.get('test_cases'))}")
         else:
             state["jira_context"] = None
             state["found"] = False
+            print("JIRA Node - No JIRA content found")
     except Exception as e:
-        print(f"JIRA Error: {str(e)}")
+        print(f"JIRA Error: {str(e)}\nTraceback:\n{traceback.format_exc()}")
         state["jira_context"] = None
         state["found"] = False
     return state
 
 def test_case_node(state: ChatState) -> ChatState:
     """Generate test cases for JIRA issues."""
-    if "test_cases" not in state:
-        state["test_cases"] = None
+    tools = get_tools()
+    if not module_manager.is_enabled('jira') or not tools:
+        return state
         
+    test_case_gen = None
+    for tool in tools:
+        if hasattr(tool, 'is_test_case_generator'):
+            test_case_gen = tool
+            break
+            
+    if not test_case_gen:
+        return state
+        
+    # Only generate test cases if we have JIRA content
     if state.get("jira_context"):
         # Check if this is a continuation request
         continue_previous = False
-        query = state.get("query", "").lower()
+        query = state.get("input", "").lower()
         if any(x in query for x in ["more", "additional", "continue", "generate more"]):
             continue_previous = True
         
-        state["test_cases"] = generate_test_cases(
-            jira_content=state["jira_context"],
+        response = invoke_tool(
+            test_case_gen,
+            state["jira_context"],
             temperature=state.get("llm_temperature", 0.7),
             scenarios_per_category=state.get("scenarios_per_category", 10),
             continue_previous=continue_previous
         )
+        
+        if response:  # Only set context if we got a valid response
+            state["test_cases"] = response
+            state["found"] = True
+        else:
+            state["test_cases"] = None
+            state["found"] = False
     return state
 
 def final_answer_node(state: ChatState) -> ChatState:
@@ -233,8 +290,11 @@ def final_answer_node(state: ChatState) -> ChatState:
     if module_manager.is_enabled('search') and state.get("serp_context"):
         sources.append(f"From web search: {state['serp_context']}")
     
-    if module_manager.is_enabled('jira') and state.get("jira_context"):
-        sources.append(f"From JIRA: {state['jira_context']}")
+    if module_manager.is_enabled('jira'):
+        if state.get("jira_context"):
+            sources.append(f"From JIRA: {state['jira_context']}")
+        if state.get("test_cases"):
+            sources.append(f"\nGenerated Test Cases:\n{state['test_cases']}")
     
     # Combine context into final answer
     if sources:
