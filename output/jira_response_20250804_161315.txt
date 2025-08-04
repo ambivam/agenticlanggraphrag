@@ -1,0 +1,154 @@
+Question: ES-4059
+
+From JIRA: ### ES-4059: Back Office - Búsqueda y filtros para candidatos, aspirantes web, y talento
+**Status:** DESIGN UX/UI  |  **Assignee:** Margarito Velazquez
+**Description:**
+*Búsqueda general*
+El usuario quiere optimizar su tiempo de búsqueda de candidatos para eso solicito que el componente de búsquedas se pudieran encontrar no solo en las habilidades del candidato si no que también en la experiencia laboral para esto se deberá crear un servicio que permita filtrar candidatos, aspirantes web y talento a través de palabras claves y condiciones AND y OR. Ya que los usuarios se encuentren familiarizados con este tipo de búsqueda que no lo muestra resultados de una sola palabra si no que combina mas de una palabra clave para agilizar una búsqueda mas eficiente de candidatos.
+
+*Ejemplo de caso de uso con una sola palabra separada de una condición AND/OR. (Backend AND SQL AND Java)*
+
+Un reclutador quiere buscar a un desarrollador Backend con habilidades SQL y Java. El reclutador está interesado no solamente en las habilidades que tenga relacionadas el candidato, sino también quiere conocer si en la educación o experiencia laboral tiene algo relacionado con SQL y Java. 
+
+Para ello, el reclutador ingresa la palabra Backend seguida de las habilidades que desea incluir en su búsqueda: AND “SQL” AND “Java”, lo que significa que quiere encontrar a una desarrollador backend que tenga SQL y Java en cualquier parte de su registro. 
+
+Como resultado, el reclutador ve una lista de 2 desarrolladores backend:
+
+* Un desarrollador, tiene las habilidades SQL y Java relacionadas a su perfil, y a parte, tiene las palabras SQL y Java en su experiencia laboral
+* El segundo desarrollador, tiene solamente la habilidad Java en su perfil y tiene las palabras SQL y Java en su experiencia laboral
+
+*Ejemplo de caso de uso con más de una palabra (Project Manager)* 
+
+Los reclutadores tendrán la posibilidad de ingresar varias palabras seguidas antes de separarlas con una condición, por ejemplo Project Manager. Los reclutadores tendrán la posibilidad de escribir las palabras con comillas ““ o sin comillas.
+
+Si escriben las palabras sin comillas (Project Manager), se buscará a candidatos que tengan la palabra Project o Manager en su perfil.
+
+!image-20220705-191455.png|width=75%!
+
+Si escriben las palabras con comillas (“Project Manager”), se buscará a candidatos que tengan las palabras juntas “Project Manager” en su registro.
+
+!image-20220705-191627.png|width=75%!
+
+
+
+Estas búsquedas se podrán combinar con la búsqueda específica utilizando filtros que se describe a continuación.
+
+
+
+*Búsqueda específica*
+
+Para la búsqueda específica, se utilizarán filtros avanzados que permitirán reducir el número de resultados posibles.
+
+Ejemplo de caso de uso:
+
+Un reclutador quiere buscar a un desarrollador Backend que tenga las habilidades de SQL y Java relacionadas, sin que se busquen en el resto de su perfil para obtener resultados más precisos. Adicionalmente, quiere buscar candidatos que tengan disponibilidad para reubicarse y que tengan una expectativa económica entre $15,000 a $20,000.
+
+Para ello, el reclutador ingresa la palabra Backend en la barra de búsqueda y después ingresa las habilidades SQL y Java en el filtro correspondiente, marca la casilla “Sí” en el filtro de “Disponibilidad para reubicarse”, y marca la casilla “$15,000 a $20,000” en el filtro de expectativa económica.
+
+!image-20220705-185423.png|width=25%!
+
+!image-20220705-185031.png|width=25%!
+
+!image-20220705-185014.png|width=25%!
+
+
+
+Para ello, se necesita un servicio que filtre la lista de candidatos por los siguientes criterios:
+
+{color:#ff5630}País{color}
+País que esté registrado para el candidato o aspirante. Los reclutadores verán una lista de opciones disponibles. Solamente se mostrarán en esta lista los países que se encuentren relacionados con los aspirantes, candidatos, y talentos. Los países que no estén relacionados no se mostrarán aunque existan en el catálogo.
+
+{color:#ff5630}Ciudad{color}
+Ciudad que esté registrada para el candidato o aspirante. Solamente se mostrarán en esta lista las ciudades que se encuentren relacionadas con los aspirantes, candidatos, y talentos. Las ciudades que no esté relacionadas no se mostrarán.
+
+{color:#ff5630}Idiomas y nivel{color}
+Idiomas y el nivel que tenga relacionados el candidato, aspirante o talento. Solamente se mostrarán en esta lista los idiomas que se encuentren relacionados con los aspirantes, candidatos, y talentos. Los idiomas que no esté relacionados no se mostrarán aunque existan en el catálogo.
+
+{color:#ff5630}Habilidades {color}
+Habilidades que tenga relacionadas el candidato, aspirante, o talento. Para este filtro, los reclutadores podrán ingresar en un cuadro de texto las habilidades que desean incluir como parte de sus criterios de búsqueda.
+
+!image-20220705-182320.png|width=33.33333333333333%!
+
+Cuando ingresen la habilidad que desean incluir, se mostrarán sugerencias de las habilidades que están buscando. 
+
+!image-20220705-182337.png|width=33.33333333333333%!
+
+Los reclutadores podrán seleccionar la habilidad que necesiten para su búsqueda. Esta habilidad se mostrará en front para confirmar que la habilidad fue agregada a los criterios de búsqueda. 
+
+!image-20220705-182348.png|width=33.33333333333333%!
+
+* La lista de sugerencias basadas en el texto ingresado mostrarán habilidades de las 4 categorías (Hard skill, soft skill, work tools y work habits)
+* Los usuarios no podrán agregar habilidades que no estén en el catálogo, ya que se limitará la búsqueda a las habilidades relacionadas con los candidatos, aspirantes o talentos.
+* Las habilidades del catálogo que no estén relacionadas con ningún aspirante, candidato, o talento, no se mostrarán como sugerencias.
+
+{color:#ff5630}Expectativa económica {color}
+
+Este criterio tomará en cuenta el rango mínimo y rango máximo de sueldo existentes que se llenan desde la página web de carreras. 
+
+Se incluirán las siguientes opciones para agrupar las cantidades que sean ingresadas en estos dos campos:
+Menor a $15,000
+$15,000 a $20,000
+$20,000 a $25,000
+$25,000 a $30,000
+$35,000 a $40,000 
+$55,000 a $60,000 
+Mayor a $60,000
+
+{color:#ff5630}Salario actual {color}
+
+Este criterio tomará en cuenta el salario actual que tengan registrado los aspirantes, candidatos y talentos. Las opciones que se mostrarán son las siguientes:
+Menor a $15,000
+$15,000 a $20,000
+$20,000 a $25,000
+$25,000 a $30,000
+$35,000 a $40,000 
+$55,000 a $60,000 
+Mayor a $60,000
+
+{color:#ff5630}Estatus laboral{color}
+
+(Si trabaja o no actualmente)
+- Sí
+- No
+
+{color:#ff5630}Experiencia en sector{color}
+- Financiero
+- Asegurador
+
+{color:#ff5630}Esquema de pago o contratación{color}
+- Nómina
+- Mixto
+- Por proyecto
+- Por horas
+
+{color:#ff5630}Disponibilidad para reubicarse{color}
+- Sí
+- No
+
+{color:#ff5630}Estatus de candidato (solamente para candidatos){color}
+- Candidato 
+- Candidato en cartera
+- Candidato favorito 
+- Candidato seleccionado
+- Agendado para entrevista
+- Candidato descartado
+
+{color:#ff5630}Estatus de aspirante (solamente para aspirantes){color}
+- Aspirante no seleccionado
+- Aspirante en cartera
+
+{color:#ff5630}Fuente de reclutamiento{color}
+
+Para este filtro necesitamos incluir un nuevo catálogo de fuentes de reclutamiento con las siguientes opciones:
+- OCC
+- LinkedIn
+- Referidos
+- Página de carreras
+
+{color:#ff5630}Reclutador{color} 
+
+Para este filtro necesitamos relacionar los usuarios con rol de reclutador a los candidatos y aspirantes
+- Ana Reyes
+- Luz Garfias
+- Néstor Hernández
+- Ricardo Benítez

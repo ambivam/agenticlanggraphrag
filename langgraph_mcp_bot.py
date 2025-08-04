@@ -399,13 +399,8 @@ graph.add_edge("RAG", "Answer")
 graph.add_edge("MySQL", "Answer")
 graph.add_edge("WebSearch", "Answer")
 
-# JIRA can optionally go through TestCases
-graph.add_conditional_edges(
-    "JIRA",
-    has_jira_results,
-    {True: "TestCases", False: "Answer"}
-)
-graph.add_edge("TestCases", "Answer")
+# JIRA goes directly to Answer
+graph.add_edge("JIRA", "Answer")
 
 # Set finish point
 graph.set_finish_point("Answer")

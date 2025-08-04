@@ -239,7 +239,7 @@ def get_jira_tools() -> List[Any]:
     """Get JIRA tools."""
     tools = []
     
-    # Create JIRA tool
+    # Create JIRA tool only
     try:
         print("\nCreating JIRA tool...")
         jira_tool = JIRATool()
@@ -249,21 +249,6 @@ def get_jira_tools() -> List[Any]:
         print(f"\nError creating JIRA tool:\n{str(e)}")
         print(f"Traceback:\n{traceback.format_exc()}")
         return []
-    
-    # Create test case generator if OpenAI key exists
-    if os.getenv('OPENAI_API_KEY'):
-        try:
-            print("\nCreating test case generator...")
-            test_case_gen = TestCaseGenerator()
-            print("Test case generator created")
-            tools.append(test_case_gen)
-        except Exception as e:
-            print(f"\nError creating test case generator:\n{str(e)}")
-            print(f"Traceback:\n{traceback.format_exc()}")
-            print("Continuing with JIRA tool only...")
-    else:
-        print("\nSkipping test case generator - OpenAI API key not found")
-        print("JIRA search will work, but test case generation is disabled")
     
     print(f"\nJIRA tools found: {len(tools)}")
     return tools
