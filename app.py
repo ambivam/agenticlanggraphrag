@@ -378,9 +378,27 @@ OPENAI_API_KEY={openai_key}
                 response = app.invoke({"input": jira_query})
                 if response.get("jira_context"):
                     st.write(response["jira_context"])
+                    
+                    # Save response to file
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    output_file = f"output/response_{timestamp}.txt"
+                    
+                    content = ["Module: JIRA"]
+                    if search_project:
+                        content.append(f"Project: {search_project}")
+                    content.append(f"Query: {jira_query}\n")
+                    content.append("Response:")
+                    content.append(response["jira_context"])
+                    
                     if response.get("test_cases"):
                         st.markdown("### 🧪 Generated Test Cases")
                         st.markdown(response["test_cases"])
+                        content.append("\nGenerated Test Cases:")
+                        content.append(response["test_cases"])
+                    
+                    with open(output_file, "w", encoding="utf-8") as f:
+                        f.write("\n".join(content))
+                    st.info(f"💾 Response saved to: {output_file}")
 
 # Set default values
 llm_temperature = 0.7

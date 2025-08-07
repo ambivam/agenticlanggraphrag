@@ -184,22 +184,36 @@ def serp_node(state: ChatState) -> ChatState:
 
 def jira_node(state: ChatState) -> ChatState:
     """Process JIRA-related queries."""
-    if not state.get("jira_context"):
+    print("\n=== JIRA Node Called ===")
+    print(f"Module jira enabled: {module_manager.is_enabled('jira')}")
+    
+    if not module_manager.is_enabled('jira'):
         return state
-
+    
     try:
         # Get JIRA tools
         tools = get_jira_tools()
+        print(f"JIRA tools found: {len(tools)}")
         
-        # Create agent
-        agent = create_agent(tools)
+        if not tools:
+            state["jira_context"] = "No JIRA tools available"
+            state["found"] = False
+            return state
+            
+        # Get JIRA tool
+        jira_tool = tools[0]
         
         # Process query
-        result = agent.invoke({"input": state["jira_context"]})
-        state["jira_context"] = result.get("output", "No response from JIRA agent")
-        state["found"] = True
+        print(f"Processing JIRA query: {state['input']}")
+        response = jira_tool.invoke(state["input"])
+        print(f"JIRA response: {response}")
+        
+        state["jira_context"] = response if response else "No response from JIRA tool"
+        state["found"] = bool(response)
     except Exception as e:
-        state["jira_context"] = f"Error processing JIRA query: {str(e)}"
+        error_msg = f"Error processing JIRA query: {str(e)}"
+        print(error_msg)
+        state["jira_context"] = error_msg
         state["found"] = False
     
     return state
