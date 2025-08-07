@@ -6,9 +6,10 @@ class ModuleManager:
         if 'modules' not in st.session_state:
             st.session_state.modules = {
                 'rag': False,
-                'search': False,
                 'sql': False,
-                'jira': False
+                'search': False,
+                'jira': False,
+                's3': False
             }
     
     def enable_module(self, module_name: str):

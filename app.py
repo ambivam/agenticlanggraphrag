@@ -1,11 +1,8 @@
-import streamlit as st
 import os
-import tempfile
-from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables first
 env_path = Path(__file__).parent / '.env'
 env_sample_path = Path(__file__).parent / '.env.sample'
 
@@ -15,16 +12,23 @@ print(f"Sample env path: {env_sample_path}")
 # Try loading .env, fallback to .env.sample
 if env_path.exists():
     print("Found .env file, loading...")
-    load_dotenv(dotenv_path=env_path)
+    load_dotenv(dotenv_path=env_path, override=True)
+    # Print AWS credentials for debugging
+    print(f"AWS_ACCESS_KEY_ID: {'✓ Set' if os.getenv('AWS_ACCESS_KEY_ID') else '✗ Not set'}")
+    print(f"AWS_SECRET_ACCESS_KEY: {'✓ Set' if os.getenv('AWS_SECRET_ACCESS_KEY') else '✗ Not set'}")
+    print(f"AWS_REGION: {os.getenv('AWS_REGION', 'Not set')}")
 else:
     print(".env not found, checking .env.sample...")
     if env_sample_path.exists():
         print("Loading from .env.sample")
-        load_dotenv(dotenv_path=env_sample_path)
+        load_dotenv(dotenv_path=env_sample_path, override=True)
     else:
         print("No environment files found!")
 
-# Import after env vars are loaded
+# Now import other modules after env vars are loaded
+import streamlit as st
+import tempfile
+from datetime import datetime
 from langgraph_mcp_bot import app
 from tools.file_upload import update_faiss_index
 from tools.jira_tool import jira_config
@@ -60,6 +64,11 @@ with col2:
         module_manager.enable_module('jira')
     else:
         module_manager.disable_module('jira')
+        
+    if st.checkbox("Enable S3", value=module_manager.is_enabled('s3'), key='s3_module'):
+        module_manager.enable_module('s3')
+    else:
+        module_manager.disable_module('s3')
 
 # Show enabled modules status
 enabled_modules = [mod for mod, enabled in module_manager.modules.items() if enabled]
@@ -98,12 +107,16 @@ if module_manager.is_enabled('rag'):
     if st.button("Search Knowledge Base") and rag_query:
         with st.spinner("Searching knowledge base..."):
             response = app.invoke({"input": rag_query})
-            if response.get("final_answer"):
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                output_file = os.path.join("output", f"rag_response_{timestamp}.txt")
-                with open(output_file, "w", encoding="utf-8") as f:
-                    f.write(f"Question: {rag_query}\n\nAnswer: {response['final_answer']}")
-                st.info(f"💾 Response saved to: {output_file}")
+            # Save response to file
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_dir = "output"
+            os.makedirs(output_dir, exist_ok=True)
+            
+            # Save both question and response in a single file
+            output_file = os.path.join(output_dir, f"rag_query_{timestamp}.txt")
+            with open(output_file, "w", encoding="utf-8") as f:
+                f.write(f"Question: {rag_query}\n\nResponse:\n{response.get('final_answer', '')}")
+            st.info(f"💾 Response saved to: {output_file}")
 else:
     uploaded_files = None
 
@@ -142,6 +155,84 @@ if uploaded_files:
 os.makedirs("output", exist_ok=True)
 
 # Other Module Sections
+
+# S3 Module
+if module_manager.is_enabled('s3'):
+    print("\n=== S3 Module Enabled ===")
+    st.markdown("### 📦 S3 Module")
+    
+    # Initialize S3 client
+    try:
+        print("Initializing S3 client...")
+        from tools.s3_tool import ListBucketsTool
+        s3_tool = ListBucketsTool()
+        
+        print("\nListing buckets...")
+        # Get list of buckets
+        buckets = s3_tool._run("")
+        print(f"Buckets response: {buckets}")
+        
+        if isinstance(buckets, str) and 'Error' in buckets:
+            print(f"Error listing buckets: {buckets}")
+            st.error(f"❌ {buckets}")
+        else:
+            # Bucket selector
+            selected_bucket = st.selectbox(
+                "Select S3 Bucket",
+                options=buckets,
+                help="Choose the S3 bucket to interact with"
+            )
+            
+            if selected_bucket:
+                # Query input
+                s3_query = st.text_input(
+                    "S3 Query",
+                    placeholder="Ask about your S3 files (e.g., 'list all PDF files', 'read contents of config.json')")
+                
+                if st.button("Query S3") and s3_query:
+                    print(f"\n=== Processing S3 Query ===")
+                    with st.spinner("Processing S3 query..."):
+                        # Format query for S3 module
+                        formatted_query = s3_query.strip()
+                        
+                        # Create state for langgraph
+                        state = {
+                            "input": formatted_query,
+                            "bucket": selected_bucket,
+                            "found": False,
+                            "rag_context": None,
+                            "sql_context": None,
+                            "serp_context": None,
+                            "jira_context": None,
+                            "s3_context": None,
+                            "test_cases": None,
+                            "final_answer": None
+                        }
+                        
+                        print(f"Query details:")
+                        print(f"- Raw query: {s3_query}")
+                        print(f"- Formatted query: {formatted_query}")
+                        print(f"- Selected bucket: {selected_bucket}")
+                        print(f"- Full state: {state}")
+                        
+                        # Invoke app with state
+                        print("\nInvoking langgraph...")
+                        response = app.invoke(state)
+                        print(f"S3 agent response: {response}")
+                        
+                        if response.get("final_answer"):
+                            # Display response
+                            st.markdown("### Results")
+                            st.write(response["final_answer"])
+                            
+                            # Save response to a single file
+                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                            output_file = os.path.join("output", f"response_{timestamp}.txt")
+                            with open(output_file, "w", encoding="utf-8") as f:
+                                f.write(f"Module: S3\nBucket: {selected_bucket}\nQuery: {s3_query}\n\nResponse:\n{response['final_answer']}")
+                            st.info(f"💾 Response saved to: {output_file}")
+    except Exception as e:
+        st.error(f"❌ Error initializing S3 module: {str(e)}. Please check your AWS credentials.")
 
 # SQL Module
 if module_manager.is_enabled('sql'):

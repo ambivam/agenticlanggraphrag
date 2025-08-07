@@ -22,3 +22,6 @@ python-pptx>=0.6.21
 # JIRA integration
 jira>=3.5.1
 openai>=1.0.0
+
+# AWS integration
+boto3>=1.28.0

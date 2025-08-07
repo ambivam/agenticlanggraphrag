@@ -7,6 +7,7 @@ from tools.rag_tool import get_rag_chain
 from tools.mysql_tool import get_mysql_agent
 from tools.serpapi_tool import get_serp_tool
 from tools.jira_tool import get_jira_tools, jira_config
+from tools.s3_tool import get_s3_agent
 from module_manager import module_manager
 
 from langchain_openai import ChatOpenAI
@@ -22,9 +23,11 @@ class ChatState(TypedDict, total=False):
     sql_context: Optional[str]
     serp_context: Optional[str]
     jira_context: Optional[str]
+    s3_context: Optional[str]
     test_cases: Optional[str]
     final_answer: Optional[str]
     found: bool
+    bucket: Optional[str]
 
 # Initialize tools
 def get_tools(temperature=0.7):
@@ -36,6 +39,7 @@ def get_tools(temperature=0.7):
     print(f"SQL Enabled: {module_manager.is_enabled('sql')}")
     print(f"Search Enabled: {module_manager.is_enabled('search')}")
     print(f"JIRA Enabled: {module_manager.is_enabled('jira')}")
+    print(f"S3 Enabled: {module_manager.is_enabled('s3')}")
     
     if module_manager.is_enabled('rag'):
         print("Adding RAG tool...")
@@ -51,6 +55,9 @@ def get_tools(temperature=0.7):
         jira_tools = get_jira_tools()
         print(f"JIRA tools found: {len(jira_tools)}")
         tools.extend(jira_tools)
+    if module_manager.is_enabled('s3'):
+        print("Adding S3 tool...")
+        tools.append(get_s3_agent())
     
     print(f"Total tools: {len(tools)}")
     return tools
@@ -176,6 +183,90 @@ def serp_node(state: ChatState) -> ChatState:
     return state
 
 def jira_node(state: ChatState) -> ChatState:
+    """Process JIRA-related queries."""
+    if not state.get("jira_context"):
+        return state
+
+    try:
+        # Get JIRA tools
+        tools = get_jira_tools()
+        
+        # Create agent
+        agent = create_agent(tools)
+        
+        # Process query
+        result = agent.invoke({"input": state["jira_context"]})
+        state["jira_context"] = result.get("output", "No response from JIRA agent")
+        state["found"] = True
+    except Exception as e:
+        state["jira_context"] = f"Error processing JIRA query: {str(e)}"
+        state["found"] = False
+    
+    return state
+
+def s3_node(state: ChatState) -> ChatState:
+    """Process S3-related queries."""
+    print("\n=== S3 Node Called ===")
+    if module_manager.is_enabled('s3'):
+        print("S3 module enabled, processing request...")
+        s3_agent = get_s3_agent()
+        
+        # Get input and bucket from state
+        input_text = state.get('input', '')
+        bucket = state.get('bucket', '')
+        print(f"Input: {input_text}")
+        print(f"Bucket: {bucket}")
+        
+        # Create context for S3 agent
+        s3_context = {
+            'input': input_text,
+            'bucket': bucket
+        }
+        
+        print("Calling S3 agent...")
+        response = s3_agent.invoke(s3_context)
+        print(f"S3 agent response: {response}")
+        
+        if response and response.get('final_answer'):
+            state['s3_context'] = response['final_answer']
+            state['found'] = True
+            print(f"Updated state with S3 response: {state}")
+    return state
+        
+    return state
+
+def final_answer_node(state: ChatState) -> ChatState:
+    """Combine all available context into a final answer."""
+    state['final_answer'] = ""
+    sources = []
+    
+    # Get context from enabled modules
+    if module_manager.is_enabled('s3') and state.get("s3_context"):
+        sources.append(f"From S3: {state['s3_context']}")
+    
+    if module_manager.is_enabled('rag') and state.get("rag_context"):
+        sources.append(f"From knowledge base: {state['rag_context']}")
+    
+    if module_manager.is_enabled('sql') and state.get("sql_context"):
+        sources.append(f"From database: {state['sql_context']}")
+    
+    if module_manager.is_enabled('search') and state.get("serp_context"):
+        sources.append(f"From web search: {state['serp_context']}")
+    
+    if module_manager.is_enabled('jira') and state.get("jira_context"):
+        sources.append(f"From JIRA: {state['jira_context']}")
+    
+    # Combine all sources
+    if sources:
+        state['final_answer'] = "\n\n".join(sources)
+        state['found'] = True
+    else:
+        state['final_answer'] = "No relevant information found from enabled modules."
+        state['found'] = False
+    
+    return state
+
+def jira_node_original(state: ChatState) -> ChatState:
     """JIRA node that processes JIRA queries."""
     print(f"JIRA Node - Input: {state.get('input')}")
     print(f"JIRA Node - Module Enabled: {module_manager.is_enabled('jira')}")
@@ -276,10 +367,32 @@ def test_case_node(state: ChatState) -> ChatState:
             state["found"] = False
     return state
 
-def final_answer_node(state: ChatState) -> ChatState:
+def select_module(state: ChatState) -> ChatState:
+    """Select which module to use based on the input and enabled modules."""
+    input_text = state["input"].lower()
+    
+    # Check each module and set context if relevant
+    if module_manager.is_enabled('rag'):
+        state["rag_context"] = input_text
+    
+    if module_manager.is_enabled('sql'):
+        state["sql_context"] = input_text
+    
+    if module_manager.is_enabled('search'):
+        state["serp_context"] = input_text
+    
+    if module_manager.is_enabled('jira'):
+        state["jira_context"] = input_text
+        
+    if module_manager.is_enabled('s3'):
+        state["s3_context"] = input_text
+    
     """Combine all available context into a final answer."""
     state['final_answer'] = ""
     sources = []
+    
+    if module_manager.is_enabled('s3') and state.get("s3_context"):
+        sources.append(f"From S3: {state['s3_context']}")
     
     if module_manager.is_enabled('rag') and state.get("rag_context"):
         sources.append(f"From knowledge base: {state['rag_context']}")
@@ -316,18 +429,6 @@ def final_answer_node(state: ChatState) -> ChatState:
             module_type = "rag"
         elif module_manager.is_enabled('sql') and state.get("sql_context"):
             module_type = "sql"
-        elif module_manager.is_enabled('search') and state.get("serp_context"):
-            module_type = "search"
-        elif module_manager.is_enabled('jira') and state.get("jira_context"):
-            module_type = "jira"
-        
-        # Save response
-        filename = f"{module_type}_response_{timestamp}.txt"
-        filepath = os.path.join(output_dir, filename)
-        
-        with open(filepath, 'w', encoding='utf-8') as f:
-            f.write(f"Question: {state['input']}\n\n")
-            f.write(state["final_answer"])
     
     return state
 
@@ -342,8 +443,15 @@ def has_jira_results(state: ChatState) -> bool:
 def get_next_node(state: ChatState) -> str:
     """Determine which node to process next based on enabled modules and current node."""
     current_node = state.get("current_node", "entry")
+    print(f"\nRouting - Current Node: {current_node}")
     
     if current_node == "entry":
+        # Check S3 first if bucket is present
+        if module_manager.is_enabled('s3') and state.get('bucket'):
+            print("Routing to S3 node - bucket present")
+            state["current_node"] = "S3"
+            return "S3"
+            
         if module_manager.is_enabled('rag'):
             state["current_node"] = "RAG"
             return "RAG"
@@ -356,6 +464,8 @@ def get_next_node(state: ChatState) -> str:
         if module_manager.is_enabled('jira'):
             state["current_node"] = "JIRA"
             return "JIRA"
+        
+        print("No matching nodes, routing to Answer")
         return "Answer"
     
     # After any module, go directly to Answer
@@ -376,6 +486,7 @@ graph.add_node("MySQL", mysql_node)
 graph.add_node("WebSearch", serp_node)
 graph.add_node("JIRA", jira_node)
 graph.add_node("TestCases", test_case_node)
+graph.add_node("S3", s3_node)
 graph.add_node("Answer", final_answer_node)
 
 # Set entry point
@@ -390,6 +501,7 @@ graph.add_conditional_edges(
         "MySQL": "MySQL",
         "WebSearch": "WebSearch",
         "JIRA": "JIRA",
+        "S3": "S3",
         "Answer": "Answer"
     }
 )
@@ -398,9 +510,8 @@ graph.add_conditional_edges(
 graph.add_edge("RAG", "Answer")
 graph.add_edge("MySQL", "Answer")
 graph.add_edge("WebSearch", "Answer")
-
-# JIRA goes directly to Answer
 graph.add_edge("JIRA", "Answer")
+graph.add_edge("S3", "Answer")
 
 # Set finish point
 graph.set_finish_point("Answer")
