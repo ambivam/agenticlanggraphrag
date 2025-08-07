@@ -251,24 +251,35 @@ def s3_node(state: ChatState) -> ChatState:
 
 def final_answer_node(state: ChatState) -> ChatState:
     """Combine all available context into a final answer."""
+    print("\n=== Final Answer Node ===")
     state['final_answer'] = ""
     sources = []
     
-    # Get context from enabled modules
+    # Determine which module was used
+    module_type = None
+    module_specific = {}
+    
     if module_manager.is_enabled('s3') and state.get("s3_context"):
         sources.append(f"From S3: {state['s3_context']}")
+        module_type = "S3"
+        module_specific = {"bucket": state.get("bucket", "unknown")}
     
     if module_manager.is_enabled('rag') and state.get("rag_context"):
         sources.append(f"From knowledge base: {state['rag_context']}")
+        module_type = "RAG"
     
     if module_manager.is_enabled('sql') and state.get("sql_context"):
         sources.append(f"From database: {state['sql_context']}")
+        module_type = "SQL"
     
     if module_manager.is_enabled('search') and state.get("serp_context"):
         sources.append(f"From web search: {state['serp_context']}")
+        module_type = "WebSearch"
     
     if module_manager.is_enabled('jira') and state.get("jira_context"):
         sources.append(f"From JIRA: {state['jira_context']}")
+        module_type = "JIRA"
+        module_specific = {"project": jira_config.project_key}
     
     # Combine all sources
     if sources:
@@ -277,6 +288,40 @@ def final_answer_node(state: ChatState) -> ChatState:
     else:
         state['final_answer'] = "No relevant information found from enabled modules."
         state['found'] = False
+    
+    # Save response to file
+    if state['final_answer']:
+        try:
+            # Create output directory if it doesn't exist
+            output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
+            os.makedirs(output_dir, exist_ok=True)
+            
+            # Create timestamped filename
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_file = os.path.join(output_dir, f"response_{timestamp}.txt")
+            
+            # Format response
+            response_text = []
+            if module_type:
+                response_text.append(f"Module: {module_type}")
+                
+                # Add module-specific info
+                if module_type == "S3" and module_specific.get("bucket"):
+                    response_text.append(f"Bucket: {module_specific['bucket']}")
+                elif module_type == "JIRA" and module_specific.get("project"):
+                    response_text.append(f"Project: {module_specific['project']}")
+                    
+            response_text.append(f"Query: {state['input']}\n")
+            response_text.append("Response:")
+            response_text.append(state['final_answer'])
+            
+            # Write to file
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(response_text))
+                
+            print(f"Response saved to: {output_file}")
+        except Exception as e:
+            print(f"Error saving response: {str(e)}")
     
     return state
 
