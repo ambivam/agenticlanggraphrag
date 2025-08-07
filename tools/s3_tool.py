@@ -169,14 +169,85 @@ class ReadFileTool(BaseTool):
         )
 
     def _run(self, tool_input: str) -> str:
+        print(f"\n=== ReadFileTool Called ===\nInput: {tool_input}")
         try:
-            # Parse input format: bucket_name:file_key
-            if ':' not in tool_input:
-                return "Please provide input in format 'bucket_name:file_key'"
+            # Parse input format
+            if isinstance(tool_input, dict):
+                bucket_name = tool_input.get('bucket_name', '')
+                file_key = tool_input.get('file_path', '')
+            else:
+                if ':' not in tool_input:
+                    return "Please provide input in format 'bucket_name:file_key'"
+                bucket_name, file_key = tool_input.split(':', 1)
+                bucket_name = bucket_name.strip()
+                file_key = file_key.strip()
                 
-            bucket_name, file_key = tool_input.split(':', 1)
-            bucket_name = bucket_name.strip()
-            file_key = file_key.strip()
+            print(f"\nReading file:")
+            print(f"Bucket: {bucket_name}")
+            print(f"File: {file_key}")
+            
+            # First check if file exists
+            try:
+                print("Checking if file exists...")
+                # List all files in bucket to find exact case
+                response = self.s3_client.list_objects_v2(Bucket=bucket_name)
+                if 'Contents' in response:
+                    files = [item['Key'] for item in response['Contents']]
+                    # Find case-insensitive match
+                    for actual_file in files:
+                        if actual_file.lower() == file_key.lower():
+                            file_key = actual_file  # Use the actual case
+                            print(f"Found exact file: {file_key}")
+                            break
+                    else:
+                        print("File not found in bucket")
+                        return f"File '{file_key}' not found in bucket '{bucket_name}'"
+                else:
+                    print("No files in bucket")
+                    return f"No files found in bucket '{bucket_name}'"
+                
+                print("Checking file access...")
+                self.s3_client.head_object(Bucket=bucket_name, Key=file_key)
+                print("File exists and is accessible")
+                
+                # Read file based on extension
+                try:
+                    print("Reading file content...")
+                    response = self.s3_client.get_object(Bucket=bucket_name, Key=file_key)
+                    
+                    # Handle different file types
+                    if file_key.lower().endswith('.pdf'):
+                        print("Detected PDF file, returning binary content")
+                        content = response['Body'].read()
+                        return f"Binary PDF content of size {len(content)} bytes. Use a PDF viewer to read this file."
+                    else:
+                        print("Attempting to read as text file...")
+                        content = response['Body'].read().decode('utf-8')
+                        return content
+                        
+                except ClientError as e:
+                    error_code = e.response['Error']['Code']
+                    if error_code == 'NoSuchKey':
+                        return f"File '{file_key}' not found in bucket '{bucket_name}'"
+                    elif error_code == 'AccessDenied':
+                        return f"Access denied. Please check your IAM permissions"
+                    else:
+                        return f"AWS Error: {str(e)}"
+                except UnicodeDecodeError:
+                    return f"File '{file_key}' appears to be a binary file. Cannot display contents directly."
+                except Exception as e:
+                    return f"Error reading file: {str(e)}"
+                    
+            except ClientError as e:
+                error_code = e.response['Error']['Code']
+                if error_code == 'NoSuchBucket':
+                    return f"Bucket '{bucket_name}' does not exist"
+                elif error_code == 'AccessDenied':
+                    return f"Access denied. Please check your IAM permissions for s3:GetObject"
+                else:
+                    return f"AWS Error: {str(e)}"
+            except Exception as e:
+                return f"Error reading file: {str(e)}"
             
             # Handle file key with or without extension
             if not file_key.endswith('.pdf') and not file_key.endswith('.txt'):
@@ -318,6 +389,20 @@ def get_s3_agent() -> S3Agent:
             query = input_text.strip().lower()
             print(f"- Normalized query: {query}")
             
+            # Extract file name for read operations
+            file_name = None
+            if any(word in query for word in ['read', 'show', 'content', 'get']):
+                # Look for file name after 'of' or at the end
+                parts = input_text.split('of')
+                if len(parts) > 1:
+                    file_name = parts[1].strip()
+                else:
+                    # Try to find the last word that might be a filename
+                    words = input_text.split()
+                    if words:
+                        file_name = words[-1].strip()
+                print(f"- Extracted file name: {file_name}")
+            
             print("\nRouting query...")
             # Route based on query type
             if 'list' in query:
@@ -330,6 +415,14 @@ def get_s3_agent() -> S3Agent:
                 print("\nCalling ListFilesTool...")
                 result = list_files._run({'bucket_name': bucket, 'filter': filter_type})
                 print(f"ListFilesTool result: {result}")
+                return result
+            elif file_name:
+                print("Detected READ operation")
+                print(f"- File: {file_name}")
+                
+                print("\nCalling ReadFileTool...")
+                result = read_file._run({'bucket_name': bucket, 'file_path': file_name})
+                print(f"ReadFileTool result: {result}")
                 return result
             elif any(word in query for word in ['read', 'show', 'content', 'get']):
                 # Read file command
