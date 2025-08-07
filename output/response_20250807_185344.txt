@@ -1,0 +1,2312 @@
+Module: S3
+Bucket: brkbluespirebucket
+Query: what is DNA
+
+Response:
+From S3: File: 314_INTER_BIOLOGY_VOL_1_EM.pdf
+
+Relevant Excerpts:
+molecular evidences of evolution
+• all organisms have cell as the basic unit of life. the cell is made of biomalecules
+common to all organisms.
+• ribosomes, the cellular organelles are of universal occurence in organisms.
+• dna is the hereditary material of all organisms.
+• atp is the molecule which store energy and release energy for biological processes.
+• the same 22 aminoacids form the constituent of proteins of almost all organisms
+...
+once the concept of organic evolution was accepted,
+taxonomists began to draw evolutionary relationships between different kinds of organisms
+this was termed systematics. today taxonomy and systematics are treated as synonymous
+since for classification, both morphological and biochemical resemblances and even those
+of between molecules such as dna and rna are studied to establish evolutionary
+relationships.
+taxonomic categories
+while classifying an organism, it is assigned to categories which show its evolutionary
+relationship with other groups of organisms
+...
+an invagination of plasma membrane is
+called as mesosomes which helps respiration at cellular level.
+17 the kingdom monera, protista and fungigenetic material
+1.circular chromosome m ade of double helical molecule of dna is located in a
+region of the cytoplasm called as nucleoid.
+2.plasmids are the extra chromosomal genetic material and bear genes for antibiotic
+resistance, sex factor, etc.
+cell organelles all single and double membrane cell organelles like endoplasmic
+reticulum, golgi chloroplast complex, mitochondria are absent
+...
+sexual reproduction
+some bacteria show a primitive mode of sexual reproduction. it is different from
+sexual reproduction higher forms.
+the steps involved in sexual reproduction are:
+(a)two conjugating (very close for exchange of dna) bacteria are held together by
+pili
+(b) a segment of dna strand is transferred from one bacterium to another bacterium.
+fig.  sexual reproduction bacteria
+ intext questions
+1.the circular single chromosome of a bacterium is made up of?
+2
+...
+it is different from
+sexual reproduction higher forms.
+the steps involved in sexual reproduction are:
+(a)two conjugating (very close for exchange of dna) bacteria are held together by
+pili
+(b) a segment of dna strand is transferred from one bacterium to another bacterium.
+fig.  sexual reproduction bacteria
+ intext questions
+1.the circular single chromosome of a bacterium is made up of?
+2.name the special region in the bacterial cell where genetic material lies
+...
+the diaphragm-a transverse muscular partition separates the chest cavity from the
+abdominal
+10.cavity is well developed.
+viviparous:
+they give birth to the young ones directly.
+ex: duck bill platypus, bats, man, moles, dogs & rabbit.
+note: only two mammals i.e. ornithorhynchus and echidna are oviparous i.e. egg laying
+mammals
+class mammalia is divided into three sub classes .
+1. prototheria  2. metatheria or marsupialia  3. eutheria or placentalia
+sub class - prototheria
+prototheria is represented by primitive mammals comprising the order monotremata
+...
+in 1855 , rudalf virchow developed an
+important” extension of cell theory” which means all living cells arise from pre-existing
+cells (omnis cellula- cellule)
+modern cell theory
+the following points are included in modern cell theory
+•the basic structural and functional unit of life is a cell.
+•all cells have the same chemical composition as well as genetic information(dna)
+•all cells arise from pre-existing cells by division.
+the cell : a cell may be defined as a unit of protoplasm bounded by a plasma membrane
+or cell membrane and possessing a nucleus. protoplasm is the life giving substance and
+include the cytoplasm and the nucleus
+...
+plant cells
+have in their cytoplasm large vacuoles containing non-living inclusions like crystals,
+pigments etc.
+115 cell structure and functionthe bacteria have neither organelles nor a well formed nucleus. but every cell has
+three major components
+•plasma membrane
+•cytoplasm
+•dna(nacked in bacteria and covered by a membrane in all other organisms
+•cell organelles
+two basic types of cells
+cytologists recognize two basic types of cells. their differences have been
+tabulated below
+...
+table  differences between prokaryotes and eukaryotes
+               prokaryotes                   eukaryotes
+1)organisms in which the nuclear material 1) organisms with a definite nucleus are called
+is not bound by a nuclear membrane is called      eukaryotes
+prokaryotes
+2)nuclear material (dna) floating in the 2) nuclear material (dna) present in the
+cytoplasm     nucleus.
+3)prokaryotic cells have no er, golgicomplex, 3) eukaryotic cells have definite internal
+mitochondria, lysosomes. membranous structures like e r, goligicomplex
+mitochondria , lysosomes
+4)70 s ribosomes are present 4) 80 s ribosomes are present
+5)no compartments in the cell 5) distinct compartments in the cell i
+...
+matrix is rich in enzymes
+for cellular respiration. in matrix divalent ions are (mg+, mn+ fe+) present. these
+ions activates the enzymes which are responsible for the cellular respiration. it
+contains several identical copies of the dsdna (as genetic material) trna, proteins
+and mitochondrial ribosomes.
+functions
+•it oxidizes pyruvic acid ( break down of glucose) to release energy which gets
+stored it in the form of atp for ready to use this process is called cellular respiration
+•matrix of mitochondria contains enzymes for the synthesis of fatty acids
+...
+124 biologygrana: these are stacks of thylakoid membranes that are interconnected by stromal
+lamellae
+thylakoid lumen: this is the space inside the thylakoid membranes where protons are
+pumped during photosy nthesis.
+chloroplast contain their own dna and ribosomes , which are used to synthesize
+some of the proteins needed for photosynthesis.
+functions :
+•the most important function of the chloroplast is photosynthesis
+•chloroplasts are able to trap solar energy that change it into chemical energy, this
+chemical energy is used by all living organisms
+...
+functions :
+•the most important function of the chloroplast is photosynthesis
+•chloroplasts are able to trap solar energy that change it into chemical energy, this
+chemical energy is used by all living organisms.
+similarities between mitochondria and chloroplast:
+•both have double membrane envolope.
+•both are semi-autonomous organelles.
+•they produce atp
+•both possess their own dna as genetic material, rns and ribosomes.
+•the organelles occur in eukaryotes and are absent in prokaryotes.
+intext questions
+1.what is cell organelle?
+2.name the chemical which provides energy trapped in its bonds to the cell
+3
+...
+in summary, the ammonia is first converted to amine
+group of glutamic acid, from which it is transferred as amine group to form several amino
+acids from alpha-keto acids. these amino acids will further converted into a wide variety
+of nitrogen-containing biological molecules such as nitrogen bases which are constituents
+of nucleic acids dna and rna.
+194 biologyreductive amination:
+a - ketoglutaric acid  + 4nh + nad(p)h
+glutamate
+dehydrogenase   glutamate + h2o + nad(p)
+oxaloacetic acid + 4nh + nad(p)h
+aspartate
+dehydrogenase   asparatate +  h2o + nad(p)
+2
+...
+(a) amylase – completes conversion of starch into maltose.
+(b) lipase – also called steapsin, acts on emulsified fats to produce fatty acids and
+glycerol.
+(c) nucleases – digest nucleic acids, i.e. dna and rna contents in  the food.
+(d) trypsinogen – the inactive precursor (proenzyme) of trypsin. it is activated into
+trypsin by the enzyme enterokinase secreted by the lining of duodinum tripsin act
+on remaining protines, proteoses and peptones to produce peptides and amino
+acids
+
+---
+
+File: 314_INTER_BIOLOGY_VOL_2_EM.pdf
+
+Relevant Excerpts:
+important terms in genetics
+factor : the unit is responsible for the inheritance and expression of a particular
+character,the term factor was coined by mendel.now factor is replaced by the
+term gene
+69 mendel experimentsgene :it is a particular segment of a dna molecule which determines the inheritance
+and expression of a particular character.
+alleles or allelomorphs : two or more alternative forms a gene or a factor are
+called alleles.
+trait : it is the expressed character ,ex : colour of flower,shape of seed
+dominant trait :out of the two alternative forms a gene the one which expresses the
+character itself in a heterogygous condition in the f1 generation
+...
+no name of the scientist year contribution
+1 mendel 1865-1866 laws of heredity and is known
+as father of genetics
+2 de vries 1901 the term mutation was coined
+by devris
+3 sutton 1902 advanced chromosomes theory
+of heredty
+4 batson 1902-1909 used the term genetics
+5 morgan 1911 postulated chromosomal basis
+of linkage
+6 bridges 1926 genic balance theory
+7 jd watson and f.h. cick 1953 double helical model of dna
+intext questions
+1.who is the founder of genetics and why?
+2.define heredity and variation
+3.give the monohybrid and dihybrid phenotypic ratio
+4.mention two sources of variation
+5.define the test cross and reciprocal cross
+72 biology6
+...
+factor : the unit is responsible for the inheritance and expression of a particular
+character.
+the term ‘factor’ was coined by mendel. now factor is replaced by the term gene.
+86 biologygene : it is a particular segment of a dna molecule which determines the inheritance
+and expression of a particular character.
+alleles or allelomorphs : two or more alternative forms a gene or a factor are
+called alleles.
+genotype : the genetic constitution of an individual is called the genotype
+...
+no name of the scientist year contribution
+1 mendel 1865-1866 laws of heredity and is
+known as father of genetics
+2 de vries 1901 the term mutation was
+coined
+3 sutton 1902 advanced chromosomes
+theory of heredty
+4 batson 1902-1909 used the term genetics
+5 morgan 1911 postulated chromosomal
+basis of linkage
+6 bridges 1926 genic balance theory
+7 jd watson and f.h. crick 1953 double helical model of
+dna
+intext questions
+1.who is the founder of genetics and why?
+2.define heredity and variation
+3.give the monohybrid and dihybrid phenotypic ratio
+4.mention two sources of variation
+5.define the test cross and reciprocal cross
+90 biology6
+...
+but what are these genes and how do they function? how genetic information is replicated
+and transmitted from cell to cell and organism to organism? consequently, the discoveries
+that led to the identification of dna as the genetic material formed the foundation for our
+current understanding of biology at the molecular level.
+this lesson deals with the study of dna as the genetic material, its structure and
+functioning at the molecular level
+...
+but what are these genes and how do they function? how genetic information is replicated
+and transmitted from cell to cell and organism to organism? consequently, the discoveries
+that led to the identification of dna as the genetic material formed the foundation for our
+current understanding of biology at the molecular level.
+this lesson deals with the study of dna as the genetic material, its structure and
+functioning at the molecular level.
+objectives
+after completing this lesson, you will be able to:
+know the history of discovery of dna as genetic material;
+describe the general structure of dna by referring to the terms nucleotides,
+nucleocides, purines and pyrimidines;
+list the differences between dna and rna;
+understand about types of rna and their functions;
+describe the modes of gene transfer, transformation, transduction and conjugation;
+explain the concept of central dogma;
+understand the process of replication of dna;
+describe the sequence of steps during transcription and translation for protein
+synthesis;
+basic understanding on regulation of gene expression;
+gain knowledge on gene mutations and their impact
+...
+this lesson deals with the study of dna as the genetic material, its structure and
+functioning at the molecular level.
+objectives
+after completing this lesson, you will be able to:
+know the history of discovery of dna as genetic material;
+describe the general structure of dna by referring to the terms nucleotides,
+nucleocides, purines and pyrimidines;
+list the differences between dna and rna;
+understand about types of rna and their functions;
+describe the modes of gene transfer, transformation, transduction and conjugation;
+explain the concept of central dogma;
+understand the process of replication of dna;
+describe the sequence of steps during transcription and translation for protein
+synthesis;
+basic understanding on regulation of gene expression;
+gain knowledge on gene mutations and their impact
+...
+objectives
+after completing this lesson, you will be able to:
+know the history of discovery of dna as genetic material;
+describe the general structure of dna by referring to the terms nucleotides,
+nucleocides, purines and pyrimidines;
+list the differences between dna and rna;
+understand about types of rna and their functions;
+describe the modes of gene transfer, transformation, transduction and conjugation;
+explain the concept of central dogma;
+understand the process of replication of dna;
+describe the sequence of steps during transcription and translation for protein
+synthesis;
+basic understanding on regulation of gene expression;
+gain knowledge on gene mutations and their impact
+...
+cytological and genetic studies show
+that genes are regarded as indivisible units of the chromosomes on which they are located,
+like “beads on a string”. the term gene was coined by w. johannsen in 1909. genes are
+made of segments of deoxyribinucleic acid (dna) molecules. genes can mutate, can be
+assorted, can be shuffled in different combinations. therefore, genes are regarded as the
+basis for modern interpretation of evolution.
+discovery of dna as the genetic (hereditary) material
+genes are known as the hereditary material in the early twentieth century and that
+genes are segments of dna became evident from the work of griffith on bacterial
+transformation
+...
+genes are
+made of segments of deoxyribinucleic acid (dna) molecules. genes can mutate, can be
+assorted, can be shuffled in different combinations. therefore, genes are regarded as the
+basis for modern interpretation of evolution.
+discovery of dna as the genetic (hereditary) material
+genes are known as the hereditary material in the early twentieth century and that
+genes are segments of dna became evident from the work of griffith on bacterial
+transformation
+...
+therefore, genes are regarded as the
+basis for modern interpretation of evolution.
+discovery of dna as the genetic (hereditary) material
+genes are known as the hereditary material in the early twentieth century and that
+genes are segments of dna became evident from the work of griffith on bacterial
+transformation.
+various experiments which proved that dna (and not protein) is the genetic material
+are as follows :
+1. griffith’s experiment :
+frederick griffith (in 1928) performed an experiment known as transformation
+experiment
+...
+discovery of dna as the genetic (hereditary) material
+genes are known as the hereditary material in the early twentieth century and that
+genes are segments of dna became evident from the work of griffith on bacterial
+transformation.
+various experiments which proved that dna (and not protein) is the genetic material
+are as follows :
+1. griffith’s experiment :
+frederick griffith (in 1928) performed an experiment known as transformation
+experiment. he used two strains of streptococcus pneumonia: type iii-s (smooth)- that
+contained outer capsule made up of polysaccharide and type ii-r (rough) strain-that did not
+contain capsule
+...
+this proved that there was some substance present in heat-
+killed s strain that was converting or transforming the rough strain into virulent strain,
+leading to the death of the mouse. this transforming substance was later found to be dna.
+99 molecular inheritance and gene expressionfig: griffith’ s experiment on bacterial transformation
+in 1944, avery, macleod and mccarty worked to determine the biochemical nature
+of transforming material in griffith’s experiment
+...
+99 molecular inheritance and gene expressionfig: griffith’ s experiment on bacterial transformation
+in 1944, avery, macleod and mccarty worked to determine the biochemical nature
+of transforming material in griffith’s experiment. they extracted the dna from the virulent
+smooth streptococcus and mixed it with the non-virulent rough variety. the non-virulent
+variety became virulent and had a smooth coat. this did not happen when dna of the virulent
+was digested with the enzyme dnaase and then mixed
+...
+they extracted the dna from the virulent
+smooth streptococcus and mixed it with the non-virulent rough variety. the non-virulent
+variety became virulent and had a smooth coat. this did not happen when dna of the virulent
+was digested with the enzyme dnaase and then mixed. thus it became clear that dna was
+the transforming principle.
+later alfred hershey and martha
+chase (1952) experiments on t2
+bacteriophage (bacteria infecting virus)
+provided the proof that dna is the
+genetic material
+...
+they extracted the dna from the virulent
+smooth streptococcus and mixed it with the non-virulent rough variety. the non-virulent
+variety became virulent and had a smooth coat. this did not happen when dna of the virulent
+was digested with the enzyme dnaase and then mixed. thus it became clear that dna was
+the transforming principle.
+later alfred hershey and martha
+chase (1952) experiments on t2
+bacteriophage (bacteria infecting virus)
+provided the proof that dna is the
+genetic material. they grew some
+bacteriophages on a medium that
+contained radioactive phosphorus and
+some others on a sulphur-containing
+radioactive medium
+...
+this did not happen when dna of the virulent
+was digested with the enzyme dnaase and then mixed. thus it became clear that dna was
+the transforming principle.
+later alfred hershey and martha
+chase (1952) experiments on t2
+bacteriophage (bacteria infecting virus)
+provided the proof that dna is the
+genetic material. they grew some
+bacteriophages on a medium that
+contained radioactive phosphorus and
+some others on a sulphur-containing
+radioactive medium. the bacteriophages
+grown in the presence of radioactive
+phosphorus contained radioactive dna
+...
+they grew some
+bacteriophages on a medium that
+contained radioactive phosphorus and
+some others on a sulphur-containing
+radioactive medium. the bacteriophages
+grown in the presence of radioactive
+phosphorus contained radioactive dna.
+radioactivity was not observed in the
+protein part. this is because dna
+contains phosphorus but protein is devoid
+fig: hershey-chase experiment
+100 biologyof phosphorus. in the same way, bacteriophages grown on radioactive sulphur contained
+radioactive protein, but not radioactive dna
+...
+this is because dna
+contains phosphorus but protein is devoid
+fig: hershey-chase experiment
+100 biologyof phosphorus. in the same way, bacteriophages grown on radioactive sulphur contained
+radioactive protein, but not radioactive dna. this is because dna does not contain sulphur.
+radioactive phages were allowed to attach to e. coli bacteria. as the infection proceeded,
+phage coats were removed from the bacteria by centrifuging
+...
+this is because dna
+contains phosphorus but protein is devoid
+fig: hershey-chase experiment
+100 biologyof phosphorus. in the same way, bacteriophages grown on radioactive sulphur contained
+radioactive protein, but not radioactive dna. this is because dna does not contain sulphur.
+radioactive phages were allowed to attach to e. coli bacteria. as the infection proceeded,
+phage coats were removed from the bacteria by centrifuging. the phage particles were
+separated from the bacteria by rotating them in a centrifuge
+...
+as the infection proceeded,
+phage coats were removed from the bacteria by centrifuging. the phage particles were
+separated from the bacteria by rotating them in a centrifuge. bacteria which were infected
+with phages that had radioactive dna were radioactive, indicating that dna was the material
+that passed from the phage to the bacteria. these experiments confirmed that dna is the
+genetic material.
+introduction to dna
+the dna is a bio polymer made up of repeating units of monomers (i
+...
+the phage particles were
+separated from the bacteria by rotating them in a centrifuge. bacteria which were infected
+with phages that had radioactive dna were radioactive, indicating that dna was the material
+that passed from the phage to the bacteria. these experiments confirmed that dna is the
+genetic material.
+introduction to dna
+the dna is a bio polymer made up of repeating units of monomers (i.e.nucleotides)
+carrying the genetic material of all cellular organisms and most viruses
+...
+bacteria which were infected
+with phages that had radioactive dna were radioactive, indicating that dna was the material
+that passed from the phage to the bacteria. these experiments confirmed that dna is the
+genetic material.
+introduction to dna
+the dna is a bio polymer made up of repeating units of monomers (i.e.nucleotides)
+carrying the genetic material of all cellular organisms and most viruses. dna contains all
+the information needed for the cell’s growth, operation, and division into two similar cells
+...
+these experiments confirmed that dna is the
+genetic material.
+introduction to dna
+the dna is a bio polymer made up of repeating units of monomers (i.e.nucleotides)
+carrying the genetic material of all cellular organisms and most viruses. dna contains all
+the information needed for the cell’s growth, operation, and division into two similar cells.
+structure of dna
+dna (deoxyribonucleic acid) is a double-stranded, helical molecule. its structure
+was cracked by watson and crick (1953) based on the x-ray crystallography results provided
+by maurice wilkins and rosalind franklin
+...
+nucleotides)
+carrying the genetic material of all cellular organisms and most viruses. dna contains all
+the information needed for the cell’s growth, operation, and division into two similar cells.
+structure of dna
+dna (deoxyribonucleic acid) is a double-stranded, helical molecule. its structure
+was cracked by watson and crick (1953) based on the x-ray crystallography results provided
+by maurice wilkins and rosalind franklin
+...
+structure of dna
+dna (deoxyribonucleic acid) is a double-stranded, helical molecule. its structure
+was cracked by watson and crick (1953) based on the x-ray crystallography results provided
+by maurice wilkins and rosalind franklin. dna is a polynucleotide, a macromolecule
+(macro = large) made of units called nucleotides. each nucleotide consists of three subunits:
+(i) a pentose (5 carbon) sugar called deoxyribose (ii) 4 nitrogenous bases adenine (a),
+guanine (g), thymine (t) and cytosine (c); (iii) a phosphate group (po4) positioned on
+the sugar
+...
+each nucleotide consists of three subunits:
+(i) a pentose (5 carbon) sugar called deoxyribose (ii) 4 nitrogenous bases adenine (a),
+guanine (g), thymine (t) and cytosine (c); (iii) a phosphate group (po4) positioned on
+the sugar.
+the bases, a and g are referred as purines while t and c including u (uracil which is
+present in rna) are called pyrimidines. the four nucleotides (a, g, c, t) are not present in
+equal amounts in a dna molecule. but the amount of purines (a + g) and that of pyrimidines
+(t + c) in dna is always equal. in other words, a = t and g = c. this is called chargaff’s
+rule.
+a base and a sugar combine to form a nucleoside, while it becomes a nucleotide
+when a phosphate group gets attached
+...
+the bases, a and g are referred as purines while t and c including u (uracil which is
+present in rna) are called pyrimidines. the four nucleotides (a, g, c, t) are not present in
+equal amounts in a dna molecule. but the amount of purines (a + g) and that of pyrimidines
+(t + c) in dna is always equal. in other words, a = t and g = c. this is called chargaff’s
+rule.
+a base and a sugar combine to form a nucleoside, while it becomes a nucleotide
+when a phosphate group gets attached
+...
+a base and a sugar combine to form a nucleoside, while it becomes a nucleotide
+when a phosphate group gets attached.
+[base + sugar = nucleoside; base + sugar + phosphate = nucleotide]
+the negative charge on dna is due to the presence of the negatively charged
+phosphate groups. a nitrogenous base is linked to the pentose sugar through the n-glycosidic
+linkage. two nucleotides are linked through 3'-5' phosphodiester linkage
+...
+the bonding
+between sugar and phosphate groups forms the backbone of a polynucleotide chain. the
+nitrogenous bases are linked to sugar moieties and project from the sugar-phosphate
+backbone.
+the chemical structure of double helix dna
+the chemical structure of double helix dna
+the characteristic features of the double helical structure of dna are as follows:
+•two polynucleotide chains wrap around each other, where the backbone is
+constituted by pentose sugar and phosphate, and the bases project inside
+...
+the
+nitrogenous bases are linked to sugar moieties and project from the sugar-phosphate
+backbone.
+the chemical structure of double helix dna
+the chemical structure of double helix dna
+the characteristic features of the double helical structure of dna are as follows:
+•two polynucleotide chains wrap around each other, where the backbone is
+constituted by pentose sugar and phosphate, and the bases project inside.
+•the two dna chains run antiparallel to each other
+...
+the chemical structure of double helix dna
+the chemical structure of double helix dna
+the characteristic features of the double helical structure of dna are as follows:
+•two polynucleotide chains wrap around each other, where the backbone is
+constituted by pentose sugar and phosphate, and the bases project inside.
+•the two dna chains run antiparallel to each other. it implies that if one chain has
+the polarity 5'-3', then the other has 3'-5'.
+•the bases in the two strands are paired through hydrogen bonds between the base
+pairs
+...
+•the two strands are coiled in a right-handed pattern.
+•the plane of one base pair lies over the other in a double helix. this, in addition to
+h-bonds, gives stability to the helical structure.
+histones and the importance of dna molecule packaging:
+in prokaryotes, dna is associated with nucleoid-associated-proteins (naps) and
+packaged into single circular chromosome located in the nucleoid region (a region of
+cytoplasm). in eukaryotes, it is organized into many linear chromosomes and the negatively
+
+102 biologycharged dna is associated with histone and non-histone proteins referred as chromatin
+...
+•the plane of one base pair lies over the other in a double helix. this, in addition to
+h-bonds, gives stability to the helical structure.
+histones and the importance of dna molecule packaging:
+in prokaryotes, dna is associated with nucleoid-associated-proteins (naps) and
+packaged into single circular chromosome located in the nucleoid region (a region of
+cytoplasm). in eukaryotes, it is organized into many linear chromosomes and the negatively
+
+102 biologycharged dna is associated with histone and non-histone proteins referred as chromatin
+...
+histones and the importance of dna molecule packaging:
+in prokaryotes, dna is associated with nucleoid-associated-proteins (naps) and
+packaged into single circular chromosome located in the nucleoid region (a region of
+cytoplasm). in eukaryotes, it is organized into many linear chromosomes and the negatively
+
+102 biologycharged dna is associated with histone and non-histone proteins referred as chromatin.
+the length of dna is very long. in order to fit the dna into the nucleus, it needs to be
+packaged in compact and compressed manner as chromatin
+...
+histones and the importance of dna molecule packaging:
+in prokaryotes, dna is associated with nucleoid-associated-proteins (naps) and
+packaged into single circular chromosome located in the nucleoid region (a region of
+cytoplasm). in eukaryotes, it is organized into many linear chromosomes and the negatively
+
+102 biologycharged dna is associated with histone and non-histone proteins referred as chromatin.
+the length of dna is very long. in order to fit the dna into the nucleus, it needs to be
+packaged in compact and compressed manner as chromatin.
+in the chromosome structure, dna double helix represents first order of packaging
+...
+in eukaryotes, it is organized into many linear chromosomes and the negatively
+
+102 biologycharged dna is associated with histone and non-histone proteins referred as chromatin.
+the length of dna is very long. in order to fit the dna into the nucleus, it needs to be
+packaged in compact and compressed manner as chromatin.
+in the chromosome structure, dna double helix represents first order of packaging.
+around 146 base pairs (bp) of dna helix wrap around a core octamer of histones called a
+nucleosome
+...
+in eukaryotes, it is organized into many linear chromosomes and the negatively
+
+102 biologycharged dna is associated with histone and non-histone proteins referred as chromatin.
+the length of dna is very long. in order to fit the dna into the nucleus, it needs to be
+packaged in compact and compressed manner as chromatin.
+in the chromosome structure, dna double helix represents first order of packaging.
+around 146 base pairs (bp) of dna helix wrap around a core octamer of histones called a
+nucleosome. the histone h1 binds the nucleosome at the entry and exit sites of the dna,
+thus locking the dna into place
+...
+in order to fit the dna into the nucleus, it needs to be
+packaged in compact and compressed manner as chromatin.
+in the chromosome structure, dna double helix represents first order of packaging.
+around 146 base pairs (bp) of dna helix wrap around a core octamer of histones called a
+nucleosome. the histone h1 binds the nucleosome at the entry and exit sites of the dna,
+thus locking the dna into place. each nucleosome is connected with other by a small
+stretch of linker dna (approximately 50 base pairs)
+...
+in the chromosome structure, dna double helix represents first order of packaging.
+around 146 base pairs (bp) of dna helix wrap around a core octamer of histones called a
+nucleosome. the histone h1 binds the nucleosome at the entry and exit sites of the dna,
+thus locking the dna into place. each nucleosome is connected with other by a small
+stretch of linker dna (approximately 50 base pairs). this formation yields 10nm fibre
+appearing like beads on a string
+...
+in the chromosome structure, dna double helix represents first order of packaging.
+around 146 base pairs (bp) of dna helix wrap around a core octamer of histones called a
+nucleosome. the histone h1 binds the nucleosome at the entry and exit sites of the dna,
+thus locking the dna into place. each nucleosome is connected with other by a small
+stretch of linker dna (approximately 50 base pairs). this formation yields 10nm fibre
+appearing like beads on a string. nucleosomes are further coiled and arranged as solenoid
+structure or zig-zag structure (30nm in diameter)
+...
+around 146 base pairs (bp) of dna helix wrap around a core octamer of histones called a
+nucleosome. the histone h1 binds the nucleosome at the entry and exit sites of the dna,
+thus locking the dna into place. each nucleosome is connected with other by a small
+stretch of linker dna (approximately 50 base pairs). this formation yields 10nm fibre
+appearing like beads on a string. nucleosomes are further coiled and arranged as solenoid
+structure or zig-zag structure (30nm in diameter)
+...
+these structures later form chromatin
+loops and chromatin fibres. during interphase, chromatin fibres when stained look like
+thread-like structures which condense to form chromosomes during mitosis.
+the levels of dna packaging are:
+the first order of dna packaging – nucleosome.
+the second order of dna packaging – solenoid fibre.
+the third order of dna packaging – scaffold loop chromatids chromosome.
+the fourth order of dna packaging-super coiled chromatin
+the fifth order of dna packaging-metaphase chromosome
+packaging involves formation of – beads on string (11nm), solenoid fibre (looks
+like coiled telephone wire, 30 nm diameter/300 å), chromatin fibre(700nm) and metaphase
+chromosome(1400nm)
+...
+during interphase, chromatin fibres when stained look like
+thread-like structures which condense to form chromosomes during mitosis.
+the levels of dna packaging are:
+the first order of dna packaging – nucleosome.
+the second order of dna packaging – solenoid fibre.
+the third order of dna packaging – scaffold loop chromatids chromosome.
+the fourth order of dna packaging-super coiled chromatin
+the fifth order of dna packaging-metaphase chromosome
+packaging involves formation of – beads on string (11nm), solenoid fibre (looks
+like coiled telephone wire, 30 nm diameter/300 å), chromatin fibre(700nm) and metaphase
+chromosome(1400nm)
+...
+the levels of dna packaging are:
+the first order of dna packaging – nucleosome.
+the second order of dna packaging – solenoid fibre.
+the third order of dna packaging – scaffold loop chromatids chromosome.
+the fourth order of dna packaging-super coiled chromatin
+the fifth order of dna packaging-metaphase chromosome
+packaging involves formation of – beads on string (11nm), solenoid fibre (looks
+like coiled telephone wire, 30 nm diameter/300 å), chromatin fibre(700nm) and metaphase
+chromosome(1400nm)
+...
+the second order of dna packaging – solenoid fibre.
+the third order of dna packaging – scaffold loop chromatids chromosome.
+the fourth order of dna packaging-super coiled chromatin
+the fifth order of dna packaging-metaphase chromosome
+packaging involves formation of – beads on string (11nm), solenoid fibre (looks
+like coiled telephone wire, 30 nm diameter/300 å), chromatin fibre(700nm) and metaphase
+chromosome(1400nm)
+...
+the fourth order of dna packaging-super coiled chromatin
+the fifth order of dna packaging-metaphase chromosome
+packaging involves formation of – beads on string (11nm), solenoid fibre (looks
+like coiled telephone wire, 30 nm diameter/300 å), chromatin fibre(700nm) and metaphase
+chromosome(1400nm).
+fig : packaging of dna molecule in chromosome
+
+103 molecular inheritance and gene expressionrna
+ribonucleic acid (rna) - it is the genetic material of certain viruses and the molecule
+that directs the middle steps of protein synthesis
+...
+fig : packaging of dna molecule in chromosome
+
+103 molecular inheritance and gene expressionrna
+ribonucleic acid (rna) - it is the genetic material of certain viruses and the molecule
+that directs the middle steps of protein synthesis. in cellular organisms, although dna
+carries the information needed for cellular activities, it cannot act alone and relies upon
+rna to transfer this crucial information (translate) during protein synthesis. in rna viruses,
+the rna directs two processes – protein synthesis (production of the virus’s protein coat)
+and replication (the process by which rna copies itself)
+...
+in rna viruses,
+the rna directs two processes – protein synthesis (production of the virus’s protein coat)
+and replication (the process by which rna copies itself).
+the structure of rna is similar to that of dna and it is composed of a single string
+of ribonucleotides, each of which is composed of
+•a pentose sugar (ribose sugar)
+•a phosphate group
+•a nitrogenous base (one of the two bases – adenine, guanine, uracil and cytosine)
+these components are joined together in the same manner as in dna molecule
+...
+the structure of rna is similar to that of dna and it is composed of a single string
+of ribonucleotides, each of which is composed of
+•a pentose sugar (ribose sugar)
+•a phosphate group
+•a nitrogenous base (one of the two bases – adenine, guanine, uracil and cytosine)
+these components are joined together in the same manner as in dna molecule. but
+rna differs chemically from dna by being single stranded, having a d-ribose sugar instead
+of deoxyribose sugar and having uracil as nitrogenous base instead of thymine. these
+nitrogenous bases can occur in any sequence
+...
+the structure of rna is similar to that of dna and it is composed of a single string
+of ribonucleotides, each of which is composed of
+•a pentose sugar (ribose sugar)
+•a phosphate group
+•a nitrogenous base (one of the two bases – adenine, guanine, uracil and cytosine)
+these components are joined together in the same manner as in dna molecule. but
+rna differs chemically from dna by being single stranded, having a d-ribose sugar instead
+of deoxyribose sugar and having uracil as nitrogenous base instead of thymine. these
+nitrogenous bases can occur in any sequence.
+types of rna
+there are three types of rna classified based on their molecular functions
+...
+the second type of rna is the ribosomal – rna (rrna), this is larger than trna
+and composes the ribosomes in the cytoplasm, the specialised structures that are the sites
+of protein synthesis.
+the largest type of rna is the messenger – rna (mrna). messenger – rna is a
+strand of rna that is complementary to the dna sequence for a gene and carries the
+genetic blueprint copied from the sequence of bases in a cell’s dna. this blue print specifies
+the sequence of amino acids in a protein. this is the only rna that can be coded to protein
+...
+the largest type of rna is the messenger – rna (mrna). messenger – rna is a
+strand of rna that is complementary to the dna sequence for a gene and carries the
+genetic blueprint copied from the sequence of bases in a cell’s dna. this blue print specifies
+the sequence of amino acids in a protein. this is the only rna that can be coded to protein.
+all the types of rna are formed as needed, using specific sections of the cell’s
+dna as template
+...
+this blue print specifies
+the sequence of amino acids in a protein. this is the only rna that can be coded to protein.
+all the types of rna are formed as needed, using specific sections of the cell’s
+dna as template.
+104 biology
+fig: types of rna
+central dogma of molecular biology
+the central dogma of molecular biology states the flow of genetic information from
+dna to rna to protein. three different processes are responsible for the inheritance of
+genetic information and for its conversion from one form to another
+...
+all the types of rna are formed as needed, using specific sections of the cell’s
+dna as template.
+104 biology
+fig: types of rna
+central dogma of molecular biology
+the central dogma of molecular biology states the flow of genetic information from
+dna to rna to protein. three different processes are responsible for the inheritance of
+genetic information and for its conversion from one form to another. they include:
+1.replication : a double stranded nucleic acid is duplicated to give identical copies
+...
+three different processes are responsible for the inheritance of
+genetic information and for its conversion from one form to another. they include:
+1.replication : a double stranded nucleic acid is duplicated to give identical copies.
+this process perpetuates the genetic information.
+2.transcription: a dna segment that constitutes a gene is read and transcribed
+into a single stranded sequence of rna. the rna moves from the nucleus into
+the cytoplasm.
+3.translation: the rna sequence is translated into a sequence of amino acids as
+the protein is formed
+...
+during translation, the ribosome reads three bases (a codon)
+at a time from the rna and translates them into one amino acid.
+fig: central dogma –flow of genetic information
+
+105 molecular inheritance and gene expressiondna replication
+dna needs to be protected, maintained and inherited efficiently in every round of
+cell division. replication is process to make dna copies for its transmission to the daughter
+cell. during replication, an exact copy of the dna is made; with the existing dna being
+used as a template for the synthesis of new dna strands in the cell nucleus
+...
+fig: central dogma –flow of genetic information
+
+105 molecular inheritance and gene expressiondna replication
+dna needs to be protected, maintained and inherited efficiently in every round of
+cell division. replication is process to make dna copies for its transmission to the daughter
+cell. during replication, an exact copy of the dna is made; with the existing dna being
+used as a template for the synthesis of new dna strands in the cell nucleus
+...
+fig: central dogma –flow of genetic information
+
+105 molecular inheritance and gene expressiondna replication
+dna needs to be protected, maintained and inherited efficiently in every round of
+cell division. replication is process to make dna copies for its transmission to the daughter
+cell. during replication, an exact copy of the dna is made; with the existing dna being
+used as a template for the synthesis of new dna strands in the cell nucleus.
+the steps involved in dna replication:
+•activation of nucleotides
+•point of origin or initiation point
+•unwinding of dna strands in the double helix
+•formation of y -shaped replicating fork
+•synthesis of new strands
+•leading and lagging strand
+•formation of daughter dna molecules
+replication of a dna molecule takes place in the cell nucleus and occurs just before
+the cell divides
+...
+replication is process to make dna copies for its transmission to the daughter
+cell. during replication, an exact copy of the dna is made; with the existing dna being
+used as a template for the synthesis of new dna strands in the cell nucleus.
+the steps involved in dna replication:
+•activation of nucleotides
+•point of origin or initiation point
+•unwinding of dna strands in the double helix
+•formation of y -shaped replicating fork
+•synthesis of new strands
+•leading and lagging strand
+•formation of daughter dna molecules
+replication of a dna molecule takes place in the cell nucleus and occurs just before
+the cell divides
+...
+during replication, an exact copy of the dna is made; with the existing dna being
+used as a template for the synthesis of new dna strands in the cell nucleus.
+the steps involved in dna replication:
+•activation of nucleotides
+•point of origin or initiation point
+•unwinding of dna strands in the double helix
+•formation of y -shaped replicating fork
+•synthesis of new strands
+•leading and lagging strand
+•formation of daughter dna molecules
+replication of a dna molecule takes place in the cell nucleus and occurs just before
+the cell divides
+...
+the steps involved in dna replication:
+•activation of nucleotides
+•point of origin or initiation point
+•unwinding of dna strands in the double helix
+•formation of y -shaped replicating fork
+•synthesis of new strands
+•leading and lagging strand
+•formation of daughter dna molecules
+replication of a dna molecule takes place in the cell nucleus and occurs just before
+the cell divides. during replication the parent double helix dna molecule uncoils when
+the hydrogen bonds between the nitrogenous bases are broken, and as a result the double
+helix dna begins to unzip and unwind
+...
+the steps involved in dna replication:
+•activation of nucleotides
+•point of origin or initiation point
+•unwinding of dna strands in the double helix
+•formation of y -shaped replicating fork
+•synthesis of new strands
+•leading and lagging strand
+•formation of daughter dna molecules
+replication of a dna molecule takes place in the cell nucleus and occurs just before
+the cell divides. during replication the parent double helix dna molecule uncoils when
+the hydrogen bonds between the nitrogenous bases are broken, and as a result the double
+helix dna begins to unzip and unwind. the unzipping creates two separate parent strands of
+dna
+...
+the steps involved in dna replication:
+•activation of nucleotides
+•point of origin or initiation point
+•unwinding of dna strands in the double helix
+•formation of y -shaped replicating fork
+•synthesis of new strands
+•leading and lagging strand
+•formation of daughter dna molecules
+replication of a dna molecule takes place in the cell nucleus and occurs just before
+the cell divides. during replication the parent double helix dna molecule uncoils when
+the hydrogen bonds between the nitrogenous bases are broken, and as a result the double
+helix dna begins to unzip and unwind. the unzipping creates two separate parent strands of
+dna. each parent strand becomes the template (pattern) for the creation of a daughter
+strand. the unzipping exposes chemical bonds on the purines and pyrimidines, the
+nucleoplasm is a reservoir of free nucleotides from which each a on the parent strand
+attracts a t nucleotide, and each c attracts a g nucleotide and so on
+...
+during replication the parent double helix dna molecule uncoils when
+the hydrogen bonds between the nitrogenous bases are broken, and as a result the double
+helix dna begins to unzip and unwind. the unzipping creates two separate parent strands of
+dna. each parent strand becomes the template (pattern) for the creation of a daughter
+strand. the unzipping exposes chemical bonds on the purines and pyrimidines, the
+nucleoplasm is a reservoir of free nucleotides from which each a on the parent strand
+attracts a t nucleotide, and each c attracts a g nucleotide and so on
+...
+the unzipping exposes chemical bonds on the purines and pyrimidines, the
+nucleoplasm is a reservoir of free nucleotides from which each a on the parent strand
+attracts a t nucleotide, and each c attracts a g nucleotide and so on. when the nucleotides
+are lined up they join together to form a polynucleotide chain, the dna polymerase helps
+the nucleotides link up; by bonding the phosphate group of nucleotide to the sugar molecule
+of the adjacent nucleotide during the side rail of the new dna molecule. after each daughter
+strand bonds to the parent strands, the molecules twist again into a double helix, forming
+two identical strands
+...
+when the nucleotides
+are lined up they join together to form a polynucleotide chain, the dna polymerase helps
+the nucleotides link up; by bonding the phosphate group of nucleotide to the sugar molecule
+of the adjacent nucleotide during the side rail of the new dna molecule. after each daughter
+strand bonds to the parent strands, the molecules twist again into a double helix, forming
+two identical strands. each new dna molecule retains half of the original dna material
+and pairing of bases occurs; this type of replication is semi conservative and complementary
+...
+when the nucleotides
+are lined up they join together to form a polynucleotide chain, the dna polymerase helps
+the nucleotides link up; by bonding the phosphate group of nucleotide to the sugar molecule
+of the adjacent nucleotide during the side rail of the new dna molecule. after each daughter
+strand bonds to the parent strands, the molecules twist again into a double helix, forming
+two identical strands. each new dna molecule retains half of the original dna material
+and pairing of bases occurs; this type of replication is semi conservative and complementary.
+enzymes and proteins involved in dna replication:
+•phosphorylase
+•helicase
+106 biology
+•single strand binding proteins (ssbp)
+•primase
+•dna polymerase
+•dna ligase
+•super-helix relaxing enzyme
+•dna gyrase (topoisomerase)
+process of protein synthesis:
+dna contains instructions for all the proteins your body, but only minute proportion
+of dna carries the information for protein synthesis called coding dna and the rest is
+known to have regulatory roles
+...
+after each daughter
+strand bonds to the parent strands, the molecules twist again into a double helix, forming
+two identical strands. each new dna molecule retains half of the original dna material
+and pairing of bases occurs; this type of replication is semi conservative and complementary.
+enzymes and proteins involved in dna replication:
+•phosphorylase
+•helicase
+106 biology
+•single strand binding proteins (ssbp)
+•primase
+•dna polymerase
+•dna ligase
+•super-helix relaxing enzyme
+•dna gyrase (topoisomerase)
+process of protein synthesis:
+dna contains instructions for all the proteins your body, but only minute proportion
+of dna carries the information for protein synthesis called coding dna and the rest is
+known to have regulatory roles
+...
+each new dna molecule retains half of the original dna material
+and pairing of bases occurs; this type of replication is semi conservative and complementary.
+enzymes and proteins involved in dna replication:
+•phosphorylase
+•helicase
+106 biology
+•single strand binding proteins (ssbp)
+•primase
+•dna polymerase
+•dna ligase
+•super-helix relaxing enzyme
+•dna gyrase (topoisomerase)
+process of protein synthesis:
+dna contains instructions for all the proteins your body, but only minute proportion
+of dna carries the information for protein synthesis called coding dna and the rest is
+known to have regulatory roles
+...
+enzymes and proteins involved in dna replication:
+•phosphorylase
+•helicase
+106 biology
+•single strand binding proteins (ssbp)
+•primase
+•dna polymerase
+•dna ligase
+•super-helix relaxing enzyme
+•dna gyrase (topoisomerase)
+process of protein synthesis:
+dna contains instructions for all the proteins your body, but only minute proportion
+of dna carries the information for protein synthesis called coding dna and the rest is
+known to have regulatory roles
+...
+enzymes and proteins involved in dna replication:
+•phosphorylase
+•helicase
+106 biology
+•single strand binding proteins (ssbp)
+•primase
+•dna polymerase
+•dna ligase
+•super-helix relaxing enzyme
+•dna gyrase (topoisomerase)
+process of protein synthesis:
+dna contains instructions for all the proteins your body, but only minute proportion
+of dna carries the information for protein synthesis called coding dna and the rest is
+known to have regulatory roles. genes are the segments of dna with instructions for making
+specific proteins or functional products
+...
+enzymes and proteins involved in dna replication:
+•phosphorylase
+•helicase
+106 biology
+•single strand binding proteins (ssbp)
+•primase
+•dna polymerase
+•dna ligase
+•super-helix relaxing enzyme
+•dna gyrase (topoisomerase)
+process of protein synthesis:
+dna contains instructions for all the proteins your body, but only minute proportion
+of dna carries the information for protein synthesis called coding dna and the rest is
+known to have regulatory roles. genes are the segments of dna with instructions for making
+specific proteins or functional products. generally, a typical gene constitutes regulatory
+segment called promoter, coding segments (exons) interspersed with non-coding segments
+(introns) and terminal regulatory region
+...
+generally, a typical gene constitutes regulatory
+segment called promoter, coding segments (exons) interspersed with non-coding segments
+(introns) and terminal regulatory region. a protein cannot be made directly from a gene.
+the bridge between genetic information and protein synthesis is rna. the synthesis of
+rna from a dna template occurs via a process called transcription. later, the information
+on rna is processed to form a polypeptide or a protein.
+transcription
+(1)transcription is the process of copying of genetic information from one (template)
+strand of dna into a complementary single stranded rna transcript
+...
+the synthesis of
+rna from a dna template occurs via a process called transcription. later, the information
+on rna is processed to form a polypeptide or a protein.
+transcription
+(1)transcription is the process of copying of genetic information from one (template)
+strand of dna into a complementary single stranded rna transcript.
+(2)occurs in the nucleus during g 1 and g 2 phases of cell cycle.
+(3)catalyzed by rna polymerase:
+(i) in prokaryotes: one type of rna polymerase
+...
+rna polymerase-ii: transcription of m-rna and heterogeneous nuclear- rna (or hnrna).
+rna polymerase-iii: transcription of t-rna and small nuclear-rna (snrna).
+(4)transcription unit: transcription unit (each transcribed segment of dna) consists
+of the promoter, the structural gene and the terminator.
+107 molecular inheritance and gene expression
+fig: transcription unit
+during transcription, rna undergoes various modifications like capping and
+polyadenylation to ensure stability of rna
+...
+earlier, it was suggested that a single gene produces a single enzyme, which later
+affects an individual step in a metabolic pathway proposed by beadle and tautum in 1942.
+later it was discovered that there are fewer number of genes as compared to wide variety
+of protein. it is important to understand the role of dna in gene expression, gene function
+and its regulation.
+fig: process of translation
+108 biologygenetic code:
+now, we are clear about the flow of information, but how the information on dna
+or mrna is understood by the transcription or translation machinery
+...
+it is important to understand the role of dna in gene expression, gene function
+and its regulation.
+fig: process of translation
+108 biologygenetic code:
+now, we are clear about the flow of information, but how the information on dna
+or mrna is understood by the transcription or translation machinery. the set of specific
+rules by which information is decoded during translation is called genetic code. the salient
+features of genetic codon are:
+polarity: genetic code is always read in 52 -» 32 direction
+...
+initiation codon: aug, codes for amino acid methionine.
+termination codons: uaa, uag and uga: they do not code for any amino acid.
+they stop the process of elongation of polypeptide chain.
+codon: a triplet of nucleotides present on dna that codes for specific amino acid
+or stop signal. e.g. aug is codon that codes for methionine; uaa is a stop codon.
+anticodon: triplet of nucleotides present on the anticodon loop of t-rna, which is
+complementary to codon on m-rna
+...
+gene expression and its regulation
+in multicellular organism every cell in the body has identical genetic information,
+individual cells have different structural and functional characteristics. gene expression is
+the most fundamental level at which genotype gives rise to the phenotype. the genetic
+code stored in dna in the form of nucleotide sequence is interpreted by gene expression,
+and the properties of the expression products give rise to the organism’s phenotype. the
+genetic content of each somatic cell in an organism is the same
+...
+gene expression can be regulated during transcription by type of rna polymerases, presence
+of alternate promoters, interaction of specific transcription factors, involvement of
+enhancers or silencers, dna binding proteins, etc. similarly, expression may be influenced
+by rna stability, transport, post-transcriptional modifications, and so on. rate of translation,
+codon degeneracy and post-translational modifications may also impact the level of gene
+expression
+...
+there are several mechanisms of regulation to understand the expression of
+developmental genes (the type of alpha and beta haemoglobin molecules produced in fetal
+stage are different from adult stage in human), structurally/functionally similar proteins,
+genes for x-chromosome inactivation in female, why proteins needed for flower
+development are silenced until needed and so on.
+important points
+gene: basic unit of heredity, made up of small segments of dna.
+dna: dna is the hereditary material which stores all the information needed
+for all the cellular activities. it involves replication, storage,
+transmission, and expression of information.
+nucleoside: it consists of nitrogen base and sugar without phosphate group
+...
+dna: dna is the hereditary material which stores all the information needed
+for all the cellular activities. it involves replication, storage,
+transmission, and expression of information.
+nucleoside: it consists of nitrogen base and sugar without phosphate group.
+nucleotide: it is a unit of the dna molecule, which contains a sugar, phosphate
+group, and nitrogen base.
+chargaff rule: in a dna molecule, the amount of purines (a + g) and that of
+pyrimidines (t + c) in dna is always equal.
+uracil: it is a pyrimidine base, present in only rna but absent in dna
+...
+nucleoside: it consists of nitrogen base and sugar without phosphate group.
+nucleotide: it is a unit of the dna molecule, which contains a sugar, phosphate
+group, and nitrogen base.
+chargaff rule: in a dna molecule, the amount of purines (a + g) and that of
+pyrimidines (t + c) in dna is always equal.
+uracil: it is a pyrimidine base, present in only rna but absent in dna.
+nucleosome: it is a repeating subunit of chromatin that contains dna and histone
+proteins
+...
+nucleotide: it is a unit of the dna molecule, which contains a sugar, phosphate
+group, and nitrogen base.
+chargaff rule: in a dna molecule, the amount of purines (a + g) and that of
+pyrimidines (t + c) in dna is always equal.
+uracil: it is a pyrimidine base, present in only rna but absent in dna.
+nucleosome: it is a repeating subunit of chromatin that contains dna and histone
+proteins.
+histones: histones are basic proteins found in chromosomes
+...
+nucleotide: it is a unit of the dna molecule, which contains a sugar, phosphate
+group, and nitrogen base.
+chargaff rule: in a dna molecule, the amount of purines (a + g) and that of
+pyrimidines (t + c) in dna is always equal.
+uracil: it is a pyrimidine base, present in only rna but absent in dna.
+nucleosome: it is a repeating subunit of chromatin that contains dna and histone
+proteins.
+histones: histones are basic proteins found in chromosomes. they help in
+packing and organisation of dna helix in chromatin fibre in the
+nucleus
+...
+chargaff rule: in a dna molecule, the amount of purines (a + g) and that of
+pyrimidines (t + c) in dna is always equal.
+uracil: it is a pyrimidine base, present in only rna but absent in dna.
+nucleosome: it is a repeating subunit of chromatin that contains dna and histone
+proteins.
+histones: histones are basic proteins found in chromosomes. they help in
+packing and organisation of dna helix in chromatin fibre in the
+nucleus.
+t-rna: it is a type of small rna
+...
+uracil: it is a pyrimidine base, present in only rna but absent in dna.
+nucleosome: it is a repeating subunit of chromatin that contains dna and histone
+proteins.
+histones: histones are basic proteins found in chromosomes. they help in
+packing and organisation of dna helix in chromatin fibre in the
+nucleus.
+t-rna: it is a type of small rna. t-rna stands for transfer rna. it carries
+the amino acid from the cytoplasm to ribosomes during protein
+synthesis.
+111 molecular inheritance and gene expressiondna replication: the process of copying and duplicating a dna molecule
+...
+they help in
+packing and organisation of dna helix in chromatin fibre in the
+nucleus.
+t-rna: it is a type of small rna. t-rna stands for transfer rna. it carries
+the amino acid from the cytoplasm to ribosomes during protein
+synthesis.
+111 molecular inheritance and gene expressiondna replication: the process of copying and duplicating a dna molecule.
+okazaki fragments: these are small fragments of dna synthesized opposite to the 3’-
+5’strand in a discontinuous manner during replication process
+...
+t-rna stands for transfer rna. it carries
+the amino acid from the cytoplasm to ribosomes during protein
+synthesis.
+111 molecular inheritance and gene expressiondna replication: the process of copying and duplicating a dna molecule.
+okazaki fragments: these are small fragments of dna synthesized opposite to the 3’-
+5’strand in a discontinuous manner during replication process.
+central dogma: it states how genetic information flows from dna to rna, rna to
+protein
+...
+it carries
+the amino acid from the cytoplasm to ribosomes during protein
+synthesis.
+111 molecular inheritance and gene expressiondna replication: the process of copying and duplicating a dna molecule.
+okazaki fragments: these are small fragments of dna synthesized opposite to the 3’-
+5’strand in a discontinuous manner during replication process.
+central dogma: it states how genetic information flows from dna to rna, rna to
+protein.
+genetic code: the sequence of nucleotides in dna and rna that determines the
+amino acid sequence of proteins
+...
+okazaki fragments: these are small fragments of dna synthesized opposite to the 3’-
+5’strand in a discontinuous manner during replication process.
+central dogma: it states how genetic information flows from dna to rna, rna to
+protein.
+genetic code: the sequence of nucleotides in dna and rna that determines the
+amino acid sequence of proteins.
+codon: a codon is a dna or rna sequence of three nucleotides.
+transcription: the synthesis of m-rna from dna molecule with the help of rna
+polymerase
+...
+central dogma: it states how genetic information flows from dna to rna, rna to
+protein.
+genetic code: the sequence of nucleotides in dna and rna that determines the
+amino acid sequence of proteins.
+codon: a codon is a dna or rna sequence of three nucleotides.
+transcription: the synthesis of m-rna from dna molecule with the help of rna
+polymerase. it occurs in nucleus.
+translation: it is a process, where the sequence of codons in m-rna converts
+into sequence of amino acids
+...
+genetic code: the sequence of nucleotides in dna and rna that determines the
+amino acid sequence of proteins.
+codon: a codon is a dna or rna sequence of three nucleotides.
+transcription: the synthesis of m-rna from dna molecule with the help of rna
+polymerase. it occurs in nucleus.
+translation: it is a process, where the sequence of codons in m-rna converts
+into sequence of amino acids. it occurs in cytoplasm.
+lac operon: it is a cluster of three structural genes encoding proteins that regulated
+and involved in lactose metabolism
+...
+translation: it is a process, where the sequence of codons in m-rna converts
+into sequence of amino acids. it occurs in cytoplasm.
+lac operon: it is a cluster of three structural genes encoding proteins that regulated
+and involved in lactose metabolism.
+intext questions
+1.write five differences between dna and rna.
+2.explain the genetic code properties.
+3.describe the structure of double helix dna.
+4.write a short note on types of rna.
+5.explain about hershey chase experiment?
+6.list out the enzymes involved in dna replication
+...
+lac operon: it is a cluster of three structural genes encoding proteins that regulated
+and involved in lactose metabolism.
+intext questions
+1.write five differences between dna and rna.
+2.explain the genetic code properties.
+3.describe the structure of double helix dna.
+4.write a short note on types of rna.
+5.explain about hershey chase experiment?
+6.list out the enzymes involved in dna replication.
+7.how many rnas participated in protein synthesis? name them.
+8
+...
+2.explain the genetic code properties.
+3.describe the structure of double helix dna.
+4.write a short note on types of rna.
+5.explain about hershey chase experiment?
+6.list out the enzymes involved in dna replication.
+7.how many rnas participated in protein synthesis? name them.
+8.define the terms: i) codon ii) nucleoside iii)nucleosome
+9.define chargaff rule.
+10.define central dogma? write the names of events in this process
+...
+how many rnas participated in protein synthesis? name them.
+8.define the terms: i) codon ii) nucleoside iii)nucleosome
+9.define chargaff rule.
+10.define central dogma? write the names of events in this process.
+11.what is meant by semiconservative model of dna replication?
+12.explain the following terms: a)translation b)okazaki fragments
+112 biologyyou have learnt from earlier lessons of this unit that genetics is the science of heredity
+and variation. after mendel’s work was rediscovered in 1900, genetics progressed very
+rapidly in the 20th century
+...
+after mendel’s work was rediscovered in 1900, genetics progressed very
+rapidly in the 20th century. today we find many applications of the knowledge of genetics
+in the fields of agriculture, medicine and forensic science. some technologies related to
+genetics such as gene cloning, recombinant dna technology, dna fingerprinting, raising
+genetically modified crops will be dealt with in this lesson.
+objectives
+after completing this lesson, you will be able to:
+highlight human curiosity and consciousness for healthy progeny;
+define the term gene cloning;
+explain the usefulness of gene bank;
+enumerate the various steps of recombinant dna technology in a sequence;
+define genetic engineering and mention its utility;
+define transgenic organism, explain the steps in its production and cite
+examples of transgenic animals, plants and microbes;
+describe steps of polymerase chain reaction and mention its use;
+list the steps of dna fingerprinting and mention its usefulness;
+explain the term genomics;
+justify the importance of genetic counselling
+...
+today we find many applications of the knowledge of genetics
+in the fields of agriculture, medicine and forensic science. some technologies related to
+genetics such as gene cloning, recombinant dna technology, dna fingerprinting, raising
+genetically modified crops will be dealt with in this lesson.
+objectives
+after completing this lesson, you will be able to:
+highlight human curiosity and consciousness for healthy progeny;
+define the term gene cloning;
+explain the usefulness of gene bank;
+enumerate the various steps of recombinant dna technology in a sequence;
+define genetic engineering and mention its utility;
+define transgenic organism, explain the steps in its production and cite
+examples of transgenic animals, plants and microbes;
+describe steps of polymerase chain reaction and mention its use;
+list the steps of dna fingerprinting and mention its usefulness;
+explain the term genomics;
+justify the importance of genetic counselling
+...
+objectives
+after completing this lesson, you will be able to:
+highlight human curiosity and consciousness for healthy progeny;
+define the term gene cloning;
+explain the usefulness of gene bank;
+enumerate the various steps of recombinant dna technology in a sequence;
+define genetic engineering and mention its utility;
+define transgenic organism, explain the steps in its production and cite
+examples of transgenic animals, plants and microbes;
+describe steps of polymerase chain reaction and mention its use;
+list the steps of dna fingerprinting and mention its usefulness;
+explain the term genomics;
+justify the importance of genetic counselling
+...
+objectives
+after completing this lesson, you will be able to:
+highlight human curiosity and consciousness for healthy progeny;
+define the term gene cloning;
+explain the usefulness of gene bank;
+enumerate the various steps of recombinant dna technology in a sequence;
+define genetic engineering and mention its utility;
+define transgenic organism, explain the steps in its production and cite
+examples of transgenic animals, plants and microbes;
+describe steps of polymerase chain reaction and mention its use;
+list the steps of dna fingerprinting and mention its usefulness;
+explain the term genomics;
+justify the importance of genetic counselling.5genetics & society
+113 genetics & societygenetics through ages
+the history of genetics can be traced to prehistoric times and be classified into
+three eras as given below
+early ideas
+primitive art such as drawings in ancient tombs and caves, bones and skulls show
+that human activities included selecting, breeding and domesticating plants and animals
+...
+mutations were recognised as source of genetic
+variation.with the acceptance of darwin’s theory of natural selection, geneticists studied
+the inheritance of traits in populations (population genetics).
+molecular genetics
+by the mid 20th century, dnawas established as the genetic material and structureand
+chemical nature of dna was understood [recall the double helical structureof dna as
+proposed by j. watson and f. crick]
+the central dogma of molecular biology holds that genetic information resides in
+dna, but its expression is in the form of proteins which are synthesized according to
+genetic information carried by mrna from dna
+...
+with the acceptance of darwin’s theory of natural selection, geneticists studied
+the inheritance of traits in populations (population genetics).
+molecular genetics
+by the mid 20th century, dnawas established as the genetic material and structureand
+chemical nature of dna was understood [recall the double helical structureof dna as
+proposed by j. watson and f. crick]
+the central dogma of molecular biology holds that genetic information resides in
+dna, but its expression is in the form of proteins which are synthesized according to
+genetic information carried by mrna from dna
+...
+molecular genetics
+by the mid 20th century, dnawas established as the genetic material and structureand
+chemical nature of dna was understood [recall the double helical structureof dna as
+proposed by j. watson and f. crick]
+the central dogma of molecular biology holds that genetic information resides in
+dna, but its expression is in the form of proteins which are synthesized according to
+genetic information carried by mrna from dna. in the last two decades of the twentieth
+century more has been understood aboutthe nucleic acid molecules and protein molecules
+and also about the genetics ofbacteria
+...
+crick]
+the central dogma of molecular biology holds that genetic information resides in
+dna, but its expression is in the form of proteins which are synthesized according to
+genetic information carried by mrna from dna. in the last two decades of the twentieth
+century more has been understood aboutthe nucleic acid molecules and protein molecules
+and also about the genetics ofbacteria. the knowledge gained has led to the invention of
+technologies of genetic engineering, gene cloning, organismal cloning, dna finger printing
+...
+in the last two decades of the twentieth
+century more has been understood aboutthe nucleic acid molecules and protein molecules
+and also about the genetics ofbacteria. the knowledge gained has led to the invention of
+technologies of genetic engineering, gene cloning, organismal cloning, dna finger printing.
+even morerecent are the fields of genomics and bioinformatics. the entire genetic make
+up (genome) of an organism can now be cloned, sequenced and functions of the variousgenes
+explored
+...
+this cell divided to give more cells which formed as embryo that
+could be implanted into the uterus of another ewe (surrogate mother).
+the production of large quantities of identical genes is called gene cloning . since
+any gene is a segment of dna having a particular sequence of the four nitrogen bases (a,
+t, g, c), multiple copies of a particular gene may be obtained by means of recombinant
+dna technology , popularly known as genetic engineering
+...
+the production of large quantities of identical genes is called gene cloning . since
+any gene is a segment of dna having a particular sequence of the four nitrogen bases (a,
+t, g, c), multiple copies of a particular gene may be obtained by means of recombinant
+dna technology , popularly known as genetic engineering . you will learn more about
+genetic engineering later in this lesson.
+gene bank
+v arious clones of bacteria carrying the desired genes in their dna can be storedand
+preserved at very low temperatures for their future use, in a gene bank
+...
+since
+any gene is a segment of dna having a particular sequence of the four nitrogen bases (a,
+t, g, c), multiple copies of a particular gene may be obtained by means of recombinant
+dna technology , popularly known as genetic engineering . you will learn more about
+genetic engineering later in this lesson.
+gene bank
+v arious clones of bacteria carrying the desired genes in their dna can be storedand
+preserved at very low temperatures for their future use, in a gene bank. a gene bank or a gene
+library or a dna library is thus a collection of bacterial or bacteriophage (virus) clones
+...
+gene bank
+v arious clones of bacteria carrying the desired genes in their dna can be storedand
+preserved at very low temperatures for their future use, in a gene bank. a gene bank or a gene
+library or a dna library is thus a collection of bacterial or bacteriophage (virus) clones. each
+clone carries specific dna segment (gene) from another organism. for example, human
+gene coding for the hormone insulin may be inserted through genetic engineering into a
+bacterium, when the bacteriummultiplies it forms a clone of bacteria carrying the gene for
+insulin and may be preserved in the ‘ gene bank ’
+...
+thus clones from a gene bank may be used
+for producing in large quantities, certain enzymes, hormones and vaccines.
+intext questions
+1.name any two recent techniques in genetics.
+2.define gene cloning
+3.what is a gene bank ?
+115 genetics & societyrecombinant dna technology
+one of the major applications of genetics is in “genetic engineering” which is also
+called recombinant dna technology. in this technique the desired gene which is a dna
+segment carrying a particular sequence of nucleotides is added to the dna of another
+organism (usually a bacterium) with the help of a transferring agent or vector
+...
+name any two recent techniques in genetics.
+2.define gene cloning
+3.what is a gene bank ?
+115 genetics & societyrecombinant dna technology
+one of the major applications of genetics is in “genetic engineering” which is also
+called recombinant dna technology. in this technique the desired gene which is a dna
+segment carrying a particular sequence of nucleotides is added to the dna of another
+organism (usually a bacterium) with the help of a transferring agent or vector
+...
+what is a gene bank ?
+115 genetics & societyrecombinant dna technology
+one of the major applications of genetics is in “genetic engineering” which is also
+called recombinant dna technology. in this technique the desired gene which is a dna
+segment carrying a particular sequence of nucleotides is added to the dna of another
+organism (usually a bacterium) with the help of a transferring agent or vector . the modified
+dna molecule carrying
+dna from two different sources is called recombinant dna or rdna
+...
+what is a gene bank ?
+115 genetics & societyrecombinant dna technology
+one of the major applications of genetics is in “genetic engineering” which is also
+called recombinant dna technology. in this technique the desired gene which is a dna
+segment carrying a particular sequence of nucleotides is added to the dna of another
+organism (usually a bacterium) with the help of a transferring agent or vector . the modified
+dna molecule carrying
+dna from two different sources is called recombinant dna or rdna. the joining
+of two pieces of dna is termed dna splicing (splicing in latin means marriage)
+...
+in this technique the desired gene which is a dna
+segment carrying a particular sequence of nucleotides is added to the dna of another
+organism (usually a bacterium) with the help of a transferring agent or vector . the modified
+dna molecule carrying
+dna from two different sources is called recombinant dna or rdna. the joining
+of two pieces of dna is termed dna splicing (splicing in latin means marriage).
+the steps in the production of rdna are as follows :
+•the desired piece of dna is cut from the cells (ex
+...
+in this technique the desired gene which is a dna
+segment carrying a particular sequence of nucleotides is added to the dna of another
+organism (usually a bacterium) with the help of a transferring agent or vector . the modified
+dna molecule carrying
+dna from two different sources is called recombinant dna or rdna. the joining
+of two pieces of dna is termed dna splicing (splicing in latin means marriage).
+the steps in the production of rdna are as follows :
+•the desired piece of dna is cut from the cells (ex. human cells) with the help of
+enzymes called restriction endonucleases or restriction enzymes
+...
+the modified
+dna molecule carrying
+dna from two different sources is called recombinant dna or rdna. the joining
+of two pieces of dna is termed dna splicing (splicing in latin means marriage).
+the steps in the production of rdna are as follows :
+•the desired piece of dna is cut from the cells (ex. human cells) with the help of
+enzymes called restriction endonucleases or restriction enzymes. these enzymes
+are found in different bacteria
+...
+the modified
+dna molecule carrying
+dna from two different sources is called recombinant dna or rdna. the joining
+of two pieces of dna is termed dna splicing (splicing in latin means marriage).
+the steps in the production of rdna are as follows :
+•the desired piece of dna is cut from the cells (ex. human cells) with the help of
+enzymes called restriction endonucleases or restriction enzymes. these enzymes
+are found in different bacteria. they recognise specific nucleotidesequences in
+a dna molecule and cleave (cut) them
+...
+the steps in the production of rdna are as follows :
+•the desired piece of dna is cut from the cells (ex. human cells) with the help of
+enzymes called restriction endonucleases or restriction enzymes. these enzymes
+are found in different bacteria. they recognise specific nucleotidesequences in
+a dna molecule and cleave (cut) them.
+•the same restriction enzyme cuts the same specific nucleotide sequence in
+aplasmid. a plasmid is a ring shaped dna molecule present in a bacterium. it is
+not part of the chromosome of the bacterium
+...
+these enzymes
+are found in different bacteria. they recognise specific nucleotidesequences in
+a dna molecule and cleave (cut) them.
+•the same restriction enzyme cuts the same specific nucleotide sequence in
+aplasmid. a plasmid is a ring shaped dna molecule present in a bacterium. it is
+not part of the chromosome of the bacterium. it is used as a vector for transferring
+the foreign dna into the host cell.
+•the desired dna fragments are then mixed with the cleaved plasmids
+...
+•the same restriction enzyme cuts the same specific nucleotide sequence in
+aplasmid. a plasmid is a ring shaped dna molecule present in a bacterium. it is
+not part of the chromosome of the bacterium. it is used as a vector for transferring
+the foreign dna into the host cell.
+•the desired dna fragments are then mixed with the cleaved plasmids. these
+plasmids pick up the foreign dna pieces to replace their lost parts. these become
+the recombinant plastids and the dna is rdna
+...
+a plasmid is a ring shaped dna molecule present in a bacterium. it is
+not part of the chromosome of the bacterium. it is used as a vector for transferring
+the foreign dna into the host cell.
+•the desired dna fragments are then mixed with the cleaved plasmids. these
+plasmids pick up the foreign dna pieces to replace their lost parts. these become
+the recombinant plastids and the dna is rdna.
+•the recombinant plasmids are now introduced into or mixed with their bacteria
+which pick up the recombinant plasmids
+...
+it is
+not part of the chromosome of the bacterium. it is used as a vector for transferring
+the foreign dna into the host cell.
+•the desired dna fragments are then mixed with the cleaved plasmids. these
+plasmids pick up the foreign dna pieces to replace their lost parts. these become
+the recombinant plastids and the dna is rdna.
+•the recombinant plasmids are now introduced into or mixed with their bacteria
+which pick up the recombinant plasmids
+...
+it is used as a vector for transferring
+the foreign dna into the host cell.
+•the desired dna fragments are then mixed with the cleaved plasmids. these
+plasmids pick up the foreign dna pieces to replace their lost parts. these become
+the recombinant plastids and the dna is rdna.
+•the recombinant plasmids are now introduced into or mixed with their bacteria
+which pick up the recombinant plasmids.
+•the r-plasmids in the bacteria multiply along with the host bacteria
+...
+it is used as a vector for transferring
+the foreign dna into the host cell.
+•the desired dna fragments are then mixed with the cleaved plasmids. these
+plasmids pick up the foreign dna pieces to replace their lost parts. these become
+the recombinant plastids and the dna is rdna.
+•the recombinant plasmids are now introduced into or mixed with their bacteria
+which pick up the recombinant plasmids.
+•the r-plasmids in the bacteria multiply along with the host bacteria. soon a clone
+of bacteria with rdna is obtained
+...
+•the recombinant plasmids are now introduced into or mixed with their bacteria
+which pick up the recombinant plasmids.
+•the r-plasmids in the bacteria multiply along with the host bacteria. soon a clone
+of bacteria with rdna is obtained. such a bacterial clone containing copies of
+the desired gene can be preserved for future use. for example, as already mentioned
+human insulin gene can be inserted into bacterial plasmid and insulin obtained
+from the bacterial clone when needed
+...
+for example, as already mentioned
+human insulin gene can be inserted into bacterial plasmid and insulin obtained
+from the bacterial clone when needed.
+116 biologyfig : major steps in genetic engineering
+importance of genetic engineering
+genetic engineering or rdna technology can be used for various purposes:
+•to manufacture important compounds like vaccines, hormones, vitamins, antibodies
+etc. the production of these substances by inserting genes responsible for them
+in the bacteria and then getting clones of these bacteria used to produce the desired
+substances
+...
+the production of these substances by inserting genes responsible for them
+in the bacteria and then getting clones of these bacteria used to produce the desired
+substances.
+•to manufacture enzymes used for making cheese.
+•to breakdown pollutants through recombinant bacteria (bioremediation).
+•to clone particular genes with the help of rdna technology and build up a gene
+bank or a gene library.
+•to use rdna for gene therapy for curing genetic disorders.
+•to raise useful plants (transgenic plants) resistant to herbicides (chemicals used
+to kill weeds) or insect pests by inserting genes in the plants through
+rdnatechnology
+...
+•to manufacture enzymes used for making cheese.
+•to breakdown pollutants through recombinant bacteria (bioremediation).
+•to clone particular genes with the help of rdna technology and build up a gene
+bank or a gene library.
+•to use rdna for gene therapy for curing genetic disorders.
+•to raise useful plants (transgenic plants) resistant to herbicides (chemicals used
+to kill weeds) or insect pests by inserting genes in the plants through
+rdnatechnology
+...
+•to use rdna for gene therapy for curing genetic disorders.
+•to raise useful plants (transgenic plants) resistant to herbicides (chemicals used
+to kill weeds) or insect pests by inserting genes in the plants through
+rdnatechnology.
+
+117 genetics & societyintext questions
+1.what is the popular term for recombinant dna technology?
+2.what is meant by dna splicing?
+3.what is a plasmid and why is it called a vector for genetic engineering?
+transgenic microbes, plants and animals
+also called genetically modified organism (gm organisms), transgenic organisms
+contain in their genetic make up foreign genes, that is, genes from another speciesor another
+kind of organism
+...
+•to raise useful plants (transgenic plants) resistant to herbicides (chemicals used
+to kill weeds) or insect pests by inserting genes in the plants through
+rdnatechnology.
+
+117 genetics & societyintext questions
+1.what is the popular term for recombinant dna technology?
+2.what is meant by dna splicing?
+3.what is a plasmid and why is it called a vector for genetic engineering?
+transgenic microbes, plants and animals
+also called genetically modified organism (gm organisms), transgenic organisms
+contain in their genetic make up foreign genes, that is, genes from another speciesor another
+kind of organism
+...
+what is a plasmid and why is it called a vector for genetic engineering?
+transgenic microbes, plants and animals
+also called genetically modified organism (gm organisms), transgenic organisms
+contain in their genetic make up foreign genes, that is, genes from another speciesor another
+kind of organism. transgenics are raised through recombinant dnatechnology.
+transgenic microbes
+bacteria are easiest to be genetically modified by adding foreign gene into
+theirplasmids through rdna technology as you have already learnt in this lesson.transgenic
+bacteria with insulin gene and human growth hormone gene have been cloned to provide
+these hormones for human use
+...
+what is a plasmid and why is it called a vector for genetic engineering?
+transgenic microbes, plants and animals
+also called genetically modified organism (gm organisms), transgenic organisms
+contain in their genetic make up foreign genes, that is, genes from another speciesor another
+kind of organism. transgenics are raised through recombinant dnatechnology.
+transgenic microbes
+bacteria are easiest to be genetically modified by adding foreign gene into
+theirplasmids through rdna technology as you have already learnt in this lesson.transgenic
+bacteria with insulin gene and human growth hormone gene have been cloned to provide
+these hormones for human use. other uses of transgenic bacteria are in decomposing
+pollutants and extractingmetals such as copper and gold
+...
+genetic engineering offers a
+wide scope for transferring genes from one organism to another, such as plants to microbes,
+animals to microbes. such gene transfers are not possible by other techniques like
+hybridisation. however, rdna technology is not without problems. one danger is that
+accidentally or intentionally pathogens may be produced and misused as in biological
+warfare. hence strict guidelines have been laid down for research in genetic engineering
+...
+one danger is that
+accidentally or intentionally pathogens may be produced and misused as in biological
+warfare. hence strict guidelines have been laid down for research in genetic engineering.
+118 biologypolymerase chain reaction
+you have learnt that dna polymerase is the enzyme responsible for dna replication
+or making a copy of a dna molecule. dna polymerase enzyme is used repeatedly for
+making many copies of a small fragment of dna in the technique called polymerase chain
+reaction (pcr)
+...
+one danger is that
+accidentally or intentionally pathogens may be produced and misused as in biological
+warfare. hence strict guidelines have been laid down for research in genetic engineering.
+118 biologypolymerase chain reaction
+you have learnt that dna polymerase is the enzyme responsible for dna replication
+or making a copy of a dna molecule. dna polymerase enzyme is used repeatedly for
+making many copies of a small fragment of dna in the technique called polymerase chain
+reaction (pcr) . thus polymerase chain reaction or pcr helps in making many copies of
+a smallamount of dna
+...
+hence strict guidelines have been laid down for research in genetic engineering.
+118 biologypolymerase chain reaction
+you have learnt that dna polymerase is the enzyme responsible for dna replication
+or making a copy of a dna molecule. dna polymerase enzyme is used repeatedly for
+making many copies of a small fragment of dna in the technique called polymerase chain
+reaction (pcr) . thus polymerase chain reaction or pcr helps in making many copies of
+a smallamount of dna
+...
+118 biologypolymerase chain reaction
+you have learnt that dna polymerase is the enzyme responsible for dna replication
+or making a copy of a dna molecule. dna polymerase enzyme is used repeatedly for
+making many copies of a small fragment of dna in the technique called polymerase chain
+reaction (pcr) . thus polymerase chain reaction or pcr helps in making many copies of
+a smallamount of dna.
+the steps in pcr are,
+•double helical dna molecule
+is heated so that it breaks up
+into two strands
+•primers are added and the dna
+is cooled
+...
+dna polymerase enzyme is used repeatedly for
+making many copies of a small fragment of dna in the technique called polymerase chain
+reaction (pcr) . thus polymerase chain reaction or pcr helps in making many copies of
+a smallamount of dna.
+the steps in pcr are,
+•double helical dna molecule
+is heated so that it breaks up
+into two strands
+•primers are added and the dna
+is cooled.
+•dna polymerase is added and
+in its presence the two single
+strands acquire complementary
+strands and so two molecules of
+the dna are formed
+...
+thus polymerase chain reaction or pcr helps in making many copies of
+a smallamount of dna.
+the steps in pcr are,
+•double helical dna molecule
+is heated so that it breaks up
+into two strands
+•primers are added and the dna
+is cooled.
+•dna polymerase is added and
+in its presence the two single
+strands acquire complementary
+strands and so two molecules of
+the dna are formed. (fig.
+23.2). these steps are repeated
+to get multiple copies of dna
+...
+the steps in pcr are,
+•double helical dna molecule
+is heated so that it breaks up
+into two strands
+•primers are added and the dna
+is cooled.
+•dna polymerase is added and
+in its presence the two single
+strands acquire complementary
+strands and so two molecules of
+the dna are formed. (fig.
+23.2). these steps are repeated
+to get multiple copies of dna.
+these days dna polymerase
+from a bacterium living in hot
+springs called taq polymerase is
+used in pcr machines. dna
+amplified by pcr can be used
+for various techniques analysis,
+cloning
+...
+•dna polymerase is added and
+in its presence the two single
+strands acquire complementary
+strands and so two molecules of
+the dna are formed. (fig.
+23.2). these steps are repeated
+to get multiple copies of dna.
+these days dna polymerase
+from a bacterium living in hot
+springs called taq polymerase is
+used in pcr machines. dna
+amplified by pcr can be used
+for various techniques analysis,
+cloning.
+
+119 genetics & societydna finger printing
+like our fingerprints, the repeated sequences in our dna are unique
+...
+•dna polymerase is added and
+in its presence the two single
+strands acquire complementary
+strands and so two molecules of
+the dna are formed. (fig.
+23.2). these steps are repeated
+to get multiple copies of dna.
+these days dna polymerase
+from a bacterium living in hot
+springs called taq polymerase is
+used in pcr machines. dna
+amplified by pcr can be used
+for various techniques analysis,
+cloning.
+
+119 genetics & societydna finger printing
+like our fingerprints, the repeated sequences in our dna are unique. you musthave
+heard that the police lifts fingerprints from the scene of crime to identify the culprit in
+case of rape, theft or murder
+...
+these days dna polymerase
+from a bacterium living in hot
+springs called taq polymerase is
+used in pcr machines. dna
+amplified by pcr can be used
+for various techniques analysis,
+cloning.
+
+119 genetics & societydna finger printing
+like our fingerprints, the repeated sequences in our dna are unique. you musthave
+heard that the police lifts fingerprints from the scene of crime to identify the culprit in
+case of rape, theft or murder
+...
+these days dna polymerase
+from a bacterium living in hot
+springs called taq polymerase is
+used in pcr machines. dna
+amplified by pcr can be used
+for various techniques analysis,
+cloning.
+
+119 genetics & societydna finger printing
+like our fingerprints, the repeated sequences in our dna are unique. you musthave
+heard that the police lifts fingerprints from the scene of crime to identify the culprit in
+case of rape, theft or murder.
+in 1984, alec jaffreys, a geneticist invented a technique which could distinguish the
+dna of a person from that of another and called this technique genetic fingerprinting or
+dna fingerprinting
+...
+you musthave
+heard that the police lifts fingerprints from the scene of crime to identify the culprit in
+case of rape, theft or murder.
+in 1984, alec jaffreys, a geneticist invented a technique which could distinguish the
+dna of a person from that of another and called this technique genetic fingerprinting or
+dna fingerprinting . this technique is now used for scientific investigation of crime. for
+example identifying correctly the accused in rape or murder or to solve paternity disputes
+(find out who the actual father of a child is)
+...
+this technique is now used for scientific investigation of crime. for
+example identifying correctly the accused in rape or murder or to solve paternity disputes
+(find out who the actual father of a child is). dna fingerprinting can be done from very
+small amounts of dna which are taken out of a tiny drop of blood, semen, hair follicle,
+tooth pulp etc. picked up from the scene of crime. the steps in the technique are:
+•dna is isolated from blood, semen etc
+...
+for
+example identifying correctly the accused in rape or murder or to solve paternity disputes
+(find out who the actual father of a child is). dna fingerprinting can be done from very
+small amounts of dna which are taken out of a tiny drop of blood, semen, hair follicle,
+tooth pulp etc. picked up from the scene of crime. the steps in the technique are:
+•dna is isolated from blood, semen etc.
+•its quantity is increased through pcr
+•the lengths of these dna pieces vary from person to person because of certain
+repeated sequences of nucleotides in dna which vary
+...
+dna fingerprinting can be done from very
+small amounts of dna which are taken out of a tiny drop of blood, semen, hair follicle,
+tooth pulp etc. picked up from the scene of crime. the steps in the technique are:
+•dna is isolated from blood, semen etc.
+•its quantity is increased through pcr
+•the lengths of these dna pieces vary from person to person because of certain
+repeated sequences of nucleotides in dna which vary
+...
+dna fingerprinting can be done from very
+small amounts of dna which are taken out of a tiny drop of blood, semen, hair follicle,
+tooth pulp etc. picked up from the scene of crime. the steps in the technique are:
+•dna is isolated from blood, semen etc.
+•its quantity is increased through pcr
+•the lengths of these dna pieces vary from person to person because of certain
+repeated sequences of nucleotides in dna which vary.
+•the dna pieces are separated from each other according to size and charge with
+the help of a technique called electrophoresis
+...
+the steps in the technique are:
+•dna is isolated from blood, semen etc.
+•its quantity is increased through pcr
+•the lengths of these dna pieces vary from person to person because of certain
+repeated sequences of nucleotides in dna which vary.
+•the dna pieces are separated from each other according to size and charge with
+the help of a technique called electrophoresis.
+•the pattern as you can see in the figure given below is unique for each person
+...
+•the dna pieces are separated from each other according to size and charge with
+the help of a technique called electrophoresis.
+•the pattern as you can see in the figure given below is unique for each person. in a
+crime, there may be three or four suspects. their dna fingerprinting is carried
+out and compared with that of the dna picked up from the scene of crime. the
+one that matches the dna print of one of the suspects is the actual culprit.
+genomics
+genome is a collective term for a full set of genes in an organism
+...
+•the pattern as you can see in the figure given below is unique for each person. in a
+crime, there may be three or four suspects. their dna fingerprinting is carried
+out and compared with that of the dna picked up from the scene of crime. the
+one that matches the dna print of one of the suspects is the actual culprit.
+genomics
+genome is a collective term for a full set of genes in an organism. genes are paired
+and so genome means all the genes present in a haploid (n) set of chromosomes
+...
+genes are paired
+and so genome means all the genes present in a haploid (n) set of chromosomes. genomics
+is the analysis of the genome data, that is, finding out the functional nucleotide sequences
+(genes) in the dna of an organism.
+120 biology human genome showing location of defective genes
+the human genome has also been mapped in 2003. humans have 23 pairs
+ofchromosomes (2n = 46) and the human genome has 3 ×109 nucleotide base pairs and if
+the sequence of nucleotides (genes) is known, it will be possible to pinpoint (i) defective
+genes (as shown in the figure in the box) and (ii) identify genes for correction of genetic
+disorders (gene therapy) and genetic counselling
+...
+recessive genes get expressed only
+when they are in the homozygous condition, that is, both genes of a pair inherited from the
+parents are recessive.
+adrenoleukodystrophy (ald)
+fatal nerve disease
+azoospermia
+absence of sperm in semendna test currently available
+gaucher disease
+a chronic enzyme deficiency occuring
+frequently among ashkenazi jews
+ehlers-danlos syndrome
+connective tissue disease
+retinitis pigmentosa
+progressive degeneration of the retina
+huntington disease
+lethal, late-onset, nerve degenerative
+disease
+familial adenomatous polyposis (fap)
+intestinal polyps leading to colon cancer
+hemochromatosis
+abnormally high absorption of
+iron from the diet
+spinocerebellar ataxia
+destroys nerves in the brain and spinal cord, resulting
+in loss of muscle control
+cystic fibrosis
+mucus in lungs, interfering with
+breathing
+werner syndrome
+premature aging
+melanoma
+tumors originating in the skin
+multiple endocrine neoplasia, type 2
+tumors in endocrine gland and other tissues
+sickle-cell anemia
+chronic inherited anemia, in which red blood cells
+sickle, clogging arterioles and capillaries
+phenylketonuria (pku)
+an inborn error of metabolism;
+if untreated, results in mental retardation retinoblastoma
+childhood tumor of
+the eyetay-sachs disease
+fatal hereditary
+disorder involving
+lipid metabolism
+often occuring in
+ashkenazi jewsalzheimer
+disease
+degenerative
+brain disorder
+marked by
+premature
+senilitypolycystic kidney disease
+cysts resulting in enlarged
+kidneys and renal failurebreast cancer
+5% of all casesneurofibromatosis (nf1)
+benign tumors of nerve
+tissue belo the skinamyloidosis
+accumulation in the tissues of
+an insoluble fibrillar proteinmyotonic dystrophy
+form of adult muscular
+dystrophyfamilial hypercholestrolemia
+extremely high cholesterolada immune deficiency
+first hereditary condition
+treated by gene therapyamyotrophic lateral sclerosis (als)
+late-onset lethal degenerative
+nerve diseaseglucose-galactose
+malabsorption syndrome
+potentially fatal digestive disorderhemophilia a
+clotting deficiencymuscular dystrophy
+progressive deterioration of the muscles
+human
+chromosome
+number
+121 genetics & societyyou can probably appreciate why marriages between closed relations (termed
+consanguineous marriage) are discouraged
+...
+•modern genetics began after mendel’s laws of inheritance were accepted soon
+after it become clear that genes are carriers of hereditary features and they are
+122 biologypresent on chromosomes. that genes mutate also become known.
+•the last fifty to sixty years have been an era of molecular genetics when it was
+confirmed that dna is the genetic material and the mechanism of dna replication
+and protein sysnthesis in a cell were discovered.
+•in the last few years, many techniques such as rdna technology, dna fingerprinting
+have been put forth
+...
+•modern genetics began after mendel’s laws of inheritance were accepted soon
+after it become clear that genes are carriers of hereditary features and they are
+122 biologypresent on chromosomes. that genes mutate also become known.
+•the last fifty to sixty years have been an era of molecular genetics when it was
+confirmed that dna is the genetic material and the mechanism of dna replication
+and protein sysnthesis in a cell were discovered.
+•in the last few years, many techniques such as rdna technology, dna fingerprinting
+have been put forth.
+•gene cloning means producing and preserving desired genes in a clone of bacteria
+through recombinant dna technology
+...
+•the last fifty to sixty years have been an era of molecular genetics when it was
+confirmed that dna is the genetic material and the mechanism of dna replication
+and protein sysnthesis in a cell were discovered.
+•in the last few years, many techniques such as rdna technology, dna fingerprinting
+have been put forth.
+•gene cloning means producing and preserving desired genes in a clone of bacteria
+through recombinant dna technology. a gene bank is one where several clones of
+bacteria carrying different desired foreign genes (for example genes of humans)
+are preserved for future use of products of these genes
+...
+•in the last few years, many techniques such as rdna technology, dna fingerprinting
+have been put forth.
+•gene cloning means producing and preserving desired genes in a clone of bacteria
+through recombinant dna technology. a gene bank is one where several clones of
+bacteria carrying different desired foreign genes (for example genes of humans)
+are preserved for future use of products of these genes.
+•genetic engineering, also called recombinant dna technology uses specific
+restriction endonuclease from different bacteria to cut genes, that is, particular
+dna sequences from dna molecules of an organism (e
+...
+a gene bank is one where several clones of
+bacteria carrying different desired foreign genes (for example genes of humans)
+are preserved for future use of products of these genes.
+•genetic engineering, also called recombinant dna technology uses specific
+restriction endonuclease from different bacteria to cut genes, that is, particular
+dna sequences from dna molecules of an organism (e.g. humans) and
+similarsequences from plasmids and join the foreign dna to the plasmid and
+introduce the plasmid with foreign dna into its host bacterium and raise a bacterial
+clone
+...
+•genetic engineering, also called recombinant dna technology uses specific
+restriction endonuclease from different bacteria to cut genes, that is, particular
+dna sequences from dna molecules of an organism (e.g. humans) and
+similarsequences from plasmids and join the foreign dna to the plasmid and
+introduce the plasmid with foreign dna into its host bacterium and raise a bacterial
+clone.
+•genetic engineering is useful for creating genetic libraries, gene therapy and
+genetically modified organisms
+...
+•genetic engineering, also called recombinant dna technology uses specific
+restriction endonuclease from different bacteria to cut genes, that is, particular
+dna sequences from dna molecules of an organism (e.g. humans) and
+similarsequences from plasmids and join the foreign dna to the plasmid and
+introduce the plasmid with foreign dna into its host bacterium and raise a bacterial
+clone.
+•genetic engineering is useful for creating genetic libraries, gene therapy and
+genetically modified organisms.
+•genetically modified organisms are also called transgenics
+...
+transgenic animals
+are larger in size and transgenic goats may carry a human gene responsible for a
+particular protein which is then released in its milk.
+•pcr or polymerase chain reaction is a technique to make many copies of a small
+amount of dna.
+•dna fingerprinting is a technique to identify the dna of a particular person. it is
+used to scientifically investigate a crime and identify the real criminal.
+•genomics is the analysis of a complete set of genes found in an organism
+...
+transgenic animals
+are larger in size and transgenic goats may carry a human gene responsible for a
+particular protein which is then released in its milk.
+•pcr or polymerase chain reaction is a technique to make many copies of a small
+amount of dna.
+•dna fingerprinting is a technique to identify the dna of a particular person. it is
+used to scientifically investigate a crime and identify the real criminal.
+•genomics is the analysis of a complete set of genes found in an organism. the
+complete set of genes is called a genome
+...
+•genetic counselling is the advise given by an expert on the chances of an unborn
+baby getting a genetic disorder.
+123 genetics & societyterminal exercises
+1.name the three eras in the history of genetics.
+2.define gene cloning. what is the usefulness of a gene bank.
+3.give the various steps of recombinant dna technology.
+4.what are the benefits of genetic engineering?
+5.what are transgenics? give examples of a transgenic microbe, plant and animals.
+6.define genomics
+7.draw and explain a pedigree chart.
+8
+...
+the term ecology delivered from a greek word oecologie where “oikos”
+meaning  household and “cogos” meaning is the study of organism at home
+these interaction can be studied at the various levels of organization in the living
+systems starting from the molecules such of  dna (genes) to a biological community.
+126 biologyeach step of independent interaction is called a level of organization. these are as
+follows.
+genes/dna         cells     organ     organism  population      community
+levels of biotic organization showing a direct impact of environment
+...
+the term ecology delivered from a greek word oecologie where “oikos”
+meaning  household and “cogos” meaning is the study of organism at home
+these interaction can be studied at the various levels of organization in the living
+systems starting from the molecules such of  dna (genes) to a biological community.
+126 biologyeach step of independent interaction is called a level of organization. these are as
+follows.
+genes/dna         cells     organ     organism  population      community
+levels of biotic organization showing a direct impact of environment.
+an organism is self reproducing system capable of growing and maintaining
+itself and is influenced by the surrounding environment
+...
+for the first time carl ericay (1919) used the
+term biotechnology. it has come from two words namely bio (meaning biology) and
+technology (technological applications).
+objectives:
+to know the recombinant dna technology
+appreciate the importance of biotechnology in human life
+define genetic engineering and mention its utility
+to know about gene clonning
+it is defined as the industrial applications of living organisms and their biological
+process such as biochemistry, microbiology, genetic engineering etc…in order to make
+best use of the microorganisms for the benefit of mankind
+...
+similarly, a desired prokaryotic
+gene can’t be transferred to an eukaryotic cell or vice versa. moreover, the conventional
+breeding programmes are time consuming in the development of new strains. the use of
+recombinant dna technology facilitates in overcoming some of these problems.
+r-dna technology
+recombinant dna technology comprises altering genetic material outside an
+organism to obtain enhanced and desired characteristics in living organisms or  their products
+...
+similarly, a desired prokaryotic
+gene can’t be transferred to an eukaryotic cell or vice versa. moreover, the conventional
+breeding programmes are time consuming in the development of new strains. the use of
+recombinant dna technology facilitates in overcoming some of these problems.
+r-dna technology
+recombinant dna technology comprises altering genetic material outside an
+organism to obtain enhanced and desired characteristics in living organisms or  their products.25biotechnology
+232 biologythis technology involves the insertion of dna fragments having a desirable gene
+sequence from a variety of sources via appropriate vector
+...
+moreover, the conventional
+breeding programmes are time consuming in the development of new strains. the use of
+recombinant dna technology facilitates in overcoming some of these problems.
+r-dna technology
+recombinant dna technology comprises altering genetic material outside an
+organism to obtain enhanced and desired characteristics in living organisms or  their products.25biotechnology
+232 biologythis technology involves the insertion of dna fragments having a desirable gene
+sequence from a variety of sources via appropriate vector
+...
+r-dna technology
+recombinant dna technology comprises altering genetic material outside an
+organism to obtain enhanced and desired characteristics in living organisms or  their products.25biotechnology
+232 biologythis technology involves the insertion of dna fragments having a desirable gene
+sequence from a variety of sources via appropriate vector. using this technology we can
+get multiple copies of a particular gene. this technique is called gene cloning
+...
+25biotechnology
+232 biologythis technology involves the insertion of dna fragments having a desirable gene
+sequence from a variety of sources via appropriate vector. using this technology we can
+get multiple copies of a particular gene. this technique is called gene cloning.
+the important steps in r-dna technology as follows:
+1.isolation of a desired gene.
+2.insertion of the isolated gene into a suitable vector.
+3.introduction of recombinant vector into a host.
+4.selection of the transformed host cells
+...
+insertion of the isolated gene into a suitable vector.
+3.introduction of recombinant vector into a host.
+4.selection of the transformed host cells.
+5.isolation and purification of the desired product.
+
+233 biotechnologyapplications of r- dna technology
+1. pest resistant plant varieties can be produced through r-dna technology.
+2. drought tolerant plants can be produced by using r-dna technology.
+3. by using this technology plants with high nutritive value can be produced
+...
+selection of the transformed host cells.
+5.isolation and purification of the desired product.
+
+233 biotechnologyapplications of r- dna technology
+1. pest resistant plant varieties can be produced through r-dna technology.
+2. drought tolerant plants can be produced by using r-dna technology.
+3. by using this technology plants with high nutritive value can be produced.
+4. genes useful for nitrogen fixation are called "nif genes" this technology helps to
+introduced nif genes into plants
+...
+isolation and purification of the desired product.
+
+233 biotechnologyapplications of r- dna technology
+1. pest resistant plant varieties can be produced through r-dna technology.
+2. drought tolerant plants can be produced by using r-dna technology.
+3. by using this technology plants with high nutritive value can be produced.
+4. genes useful for nitrogen fixation are called "nif genes" this technology helps to
+introduced nif genes into plants
+...
+by using this technology plants with high nutritive value can be produced.
+4. genes useful for nitrogen fixation are called "nif genes" this technology helps to
+introduced nif genes into plants.
+5. human insulin is produced by transformed yeast cells having r-dna that contain
+insulin gene.
+6. somatotropin hormone which promotes growth in humans is produced from e.coli
+cells.
+7. the protein produced by transformed pseudomonas phorascens since inhibits
+the insect growth
+...
+a new strain of colon bacillus is prepared which produce alpha interferons that
+inhibit the growth of viruses.
+9. microorganisms which release methane rapidly in biogas plants have been grown.
+10. different types of vacc ines are produced by r-dna technology.
+intext questions
+1.define genetic engineering.
+2.what is a clone?
+3.what do you mean by the term recombinant dna?
+what you ha ve learnt
+•biotechnology is the application of scientific knowledge by industries that
+produce biological products like food supplements, enzymes, drugs etc
+•tools of r-dna technology are cell culture, restriction enzymes, plasmids,
+ligase and host bacteria
+...
+microorganisms which release methane rapidly in biogas plants have been grown.
+10. different types of vacc ines are produced by r-dna technology.
+intext questions
+1.define genetic engineering.
+2.what is a clone?
+3.what do you mean by the term recombinant dna?
+what you ha ve learnt
+•biotechnology is the application of scientific knowledge by industries that
+produce biological products like food supplements, enzymes, drugs etc
+•tools of r-dna technology are cell culture, restriction enzymes, plasmids,
+ligase and host bacteria
+...
+what do you mean by the term recombinant dna?
+what you ha ve learnt
+•biotechnology is the application of scientific knowledge by industries that
+produce biological products like food supplements, enzymes, drugs etc
+•tools of r-dna technology are cell culture, restriction enzymes, plasmids,
+ligase and host bacteria.
+234 biology•recombinant dna (r-dna) technology resulted from the discovery of
+(i) plasmids and
+(ii) restriction enzymes
+...
+what do you mean by the term recombinant dna?
+what you ha ve learnt
+•biotechnology is the application of scientific knowledge by industries that
+produce biological products like food supplements, enzymes, drugs etc
+•tools of r-dna technology are cell culture, restriction enzymes, plasmids,
+ligase and host bacteria.
+234 biology•recombinant dna (r-dna) technology resulted from the discovery of
+(i) plasmids and
+(ii) restriction enzymes.
+•genetically engineered organisms carrying foreign genes are called transgenics.
+•genetic engineering is defined as construction and use of dna molecules
+engineered by recombinant dna technology
+...
+234 biology•recombinant dna (r-dna) technology resulted from the discovery of
+(i) plasmids and
+(ii) restriction enzymes.
+•genetically engineered organisms carrying foreign genes are called transgenics.
+•genetic engineering is defined as construction and use of dna molecules
+engineered by recombinant dna technology.
+•recombinant dna technology may be used to obtain commercially important
+proteins such as insulin, clotting factors, monoclonal antibodies, enzymes,
+antibodies and vaccin es, etc
+...
+234 biology•recombinant dna (r-dna) technology resulted from the discovery of
+(i) plasmids and
+(ii) restriction enzymes.
+•genetically engineered organisms carrying foreign genes are called transgenics.
+•genetic engineering is defined as construction and use of dna molecules
+engineered by recombinant dna technology.
+•recombinant dna technology may be used to obtain commercially important
+proteins such as insulin, clotting factors, monoclonal antibodies, enzymes,
+antibodies and vaccin es, etc.
+terminal exercises
+1
+...
+•genetically engineered organisms carrying foreign genes are called transgenics.
+•genetic engineering is defined as construction and use of dna molecules
+engineered by recombinant dna technology.
+•recombinant dna technology may be used to obtain commercially important
+proteins such as insulin, clotting factors, monoclonal antibodies, enzymes,
+antibodies and vaccin es, etc.
+terminal exercises
+1.define biotechnology
+...
+•recombinant dna technology may be used to obtain commercially important
+proteins such as insulin, clotting factors, monoclonal antibodies, enzymes,
+antibodies and vaccin es, etc.
+terminal exercises
+1.define biotechnology.
+2.enumerate in a sequence the steps in recombinant dna technology.
+3.describe the uses of genetic engineering.
+answers to intext questions
+1.causing genetic change by artificially manipulating dna is genetic engineering.
+2.clone is a group of genetically identical cells
+...
+define biotechnology.
+2.enumerate in a sequence the steps in recombinant dna technology.
+3.describe the uses of genetic engineering.
+answers to intext questions
+1.causing genetic change by artificially manipulating dna is genetic engineering.
+2.clone is a group of genetically identical cells. such cells are descendants of a
+single cells
+3.two or many molecules of dna from two different species were combined and
+are inserted into a host organism to produce new genetic combinations
+...
+causing genetic change by artificially manipulating dna is genetic engineering.
+2.clone is a group of genetically identical cells. such cells are descendants of a
+single cells
+3.two or many molecules of dna from two different species were combined and
+are inserted into a host organism to produce new genetic combinations.
+emerging areas of biotechnology
+1. genomics : genomics is a rapidly emerging area of research
+...
+they caused
+due to action of natural aspects like temperature fluctuations, electric currents
+etc.
+ex:oenothera gigas  & oenothera nanella
+ii.induced mutations
+an induced mutation is the type of mutation that occurs once an organism’s dna
+is exposed to a mutagen. mutagens can be physical or chemical agents.
+ex:physical mutagens- x-rays, -rays, - rays and u.v .rays
+chemical mutagens-formaldehyde, nitrous acid, ems, mms
+malic hydrazide, and colchicine
+ex:ir-8 rice, aruna variety of castor, sweedish variety of barley
+e
+...
+the laboratory
+technique of growing, culturing and maintaining cells, tissues and organs in vitro on an
+artificial nutrient medium is known as “tissue culture”. the basic principle on the tissue
+culture is based is the ‘cellular totipotency’.
+objectives
+after completing this lesson, you will be able to:
+to know the r-dna technology
+explain the term ‘cellular totipotency’ and prove the formation of complete plant
+in the favorable conditions
+describe the preparation of nutrient medium
+explain that essential nutrients required for plant growth can be supplied through
+nutrient medium

@@ -1,5 +1,5 @@
 import os
-from typing import TypedDict, Optional, List, Dict, Any, ClassVar
+from typing import TypedDict, Optional, List, Dict, Any, ClassVar, Union
 from langchain_openai import ChatOpenAI
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -292,7 +292,9 @@ class SearchFilesTool(BaseTool):
     list_files_tool: Any = None
     
     def __init__(self):
+        # Initialize Pydantic model first
         super().__init__()
+        
         # Load environment variables
         load_dotenv()
         
@@ -303,7 +305,8 @@ class SearchFilesTool(BaseTool):
         
         if not access_key or not secret_key:
             raise ValueError("AWS credentials not found in environment variables")
-            
+        
+        print(f"Initializing S3 client with region {region}")
         self.s3_client = boto3.client(
             's3',
             aws_access_key_id=access_key,
@@ -311,35 +314,125 @@ class SearchFilesTool(BaseTool):
             region_name=region
         )
         self.list_files_tool = ListFilesTool()
-        super().__init__()
 
-    def _run(self, tool_input: str) -> List[str]:
+    def _run(self, tool_input: Union[str, Dict[str, str]]) -> str:
         try:
             # Parse input format: bucket_name:search_term
-            if ':' not in tool_input:
-                return ["Please provide input in format 'bucket_name:search_term'"]
+            if isinstance(tool_input, dict):
+                bucket_name = tool_input.get('bucket_name', '').strip()
+                search_term = tool_input.get('search_term', '').strip()
+            else:
+                if ':' not in tool_input:
+                    return "Please provide input in format 'bucket_name:search_term'"
+                    
+                bucket_name, search_term = tool_input.split(':', 1)
+                bucket_name = bucket_name.strip()
+                search_term = search_term.strip()
                 
-            bucket_name, search_term = tool_input.split(':', 1)
-            bucket_name = bucket_name.strip()
-            search_term = search_term.strip()
+            print(f"\nSearching for '{search_term}' in bucket '{bucket_name}'...")
             
-            # List all files and filter by search term
-            matching_files = self.list_files_tool._run(f"{bucket_name}:")
-            if isinstance(matching_files, str) and 'Error' in matching_files:
-                return [matching_files]
+            def extract_relevant_content(text: str, search_term: str, context_words: int = 50) -> str:
+                """Extract relevant snippets around search term with context."""
+                text = text.lower()
+                search_term = search_term.lower()
+                
+                # Find all occurrences of search term
+                snippets = []
+                start = 0
+                while True:
+                    idx = text.find(search_term, start)
+                    if idx == -1:
+                        break
+                        
+                    # Get context around the match
+                    context_start = max(0, text.rfind('.', 0, max(0, idx-200)) + 1)
+                    context_end = text.find('.', min(len(text), idx+200))
+                    if context_end == -1:
+                        context_end = len(text)
+                    
+                    # Extract snippet with sentence boundaries
+                    snippet = text[context_start:context_end].strip()
+                    if snippet and snippet not in snippets:  # Avoid duplicates
+                        snippets.append(snippet)
+                    
+                    start = idx + len(search_term)
+                
+                return '\n...\n'.join(snippets) if snippets else ''
             
-            # Filter files containing search term
-            matching_files = [f for f in matching_files if search_term.lower() in f.lower()]
-            if not matching_files:
-                return [f"No files found containing '{search_term}' in bucket '{bucket_name}'"]
+            # Get list of files
+            response = self.s3_client.list_objects_v2(Bucket=bucket_name)
+            if 'Contents' not in response:
+                return f"No files found in bucket '{bucket_name}'"
             
-            # Read contents of matching files
-            results = []
+            matching_files = [item['Key'] for item in response['Contents']]
+            print(f"Found {len(matching_files)} total files")
+            
+            relevant_results = []
+            
+            # Process each file
             for file_key in matching_files:
-                content = self.s3_client.get_object(Bucket=bucket_name, Key=file_key)['Body'].read().decode('utf-8')
-                results.append(f"File: {file_key}\nContents:\n{content}\n---")
+                try:
+                    print(f"Reading {file_key}...")
+                    response = self.s3_client.get_object(Bucket=bucket_name, Key=file_key)
+                    content = ''
+                    
+                    # Handle PDF files
+                    if file_key.lower().endswith('.pdf'):
+                        try:
+                            from PyPDF2 import PdfReader
+                            from io import BytesIO
+                            
+                            pdf_bytes = BytesIO(response['Body'].read())
+                            pdf_reader = PdfReader(pdf_bytes)
+                            
+                            print(f"Processing PDF {file_key} with {len(pdf_reader.pages)} pages...")
+                            # Extract text from each page
+                            for page in pdf_reader.pages:
+                                try:
+                                    page_text = page.extract_text()
+                                    if page_text:
+                                        content += page_text + '\n'
+                                except Exception as e:
+                                    print(f"Error extracting text from page in {file_key}: {str(e)}")
+                                    continue
+                            
+                            if not content:
+                                print(f"Warning: No text extracted from {file_key}")
+                        except Exception as e:
+                            print(f"Error reading PDF {file_key}: {str(e)}")
+                            continue
+                    else:
+                        # Handle text files with multiple encodings
+                        try:
+                            file_bytes = response['Body'].read()
+                            for encoding in ['utf-8', 'latin1', 'cp1252', 'ascii']:
+                                try:
+                                    content = file_bytes.decode(encoding)
+                                    break
+                                except UnicodeDecodeError:
+                                    continue
+                        except Exception as e:
+                            print(f"Error reading {file_key}: {str(e)}")
+                            continue
+                    
+                    if not content:
+                        continue
+                        
+                    # Extract relevant content around search term
+                    relevant = extract_relevant_content(content, search_term)
+                    if relevant:
+                        result = f"File: {file_key}\n\nRelevant Excerpts:\n{relevant}\n"
+                        relevant_results.append(result)
+                        print(f"Found relevant content in {file_key}")
+                        
+                except Exception as e:
+                    print(f"Error processing {file_key}: {str(e)}")
+                    continue
             
-            return results
+            if not relevant_results:
+                return f"No content found containing '{search_term}' in bucket '{bucket_name}'"
+                
+            return "\n---\n\n".join(relevant_results)
         except ClientError as e:
             error_code = e.response['Error']['Code']
             if error_code == 'NoSuchBucket':
@@ -405,7 +498,26 @@ def get_s3_agent() -> S3Agent:
             
             print("\nRouting query...")
             # Route based on query type
-            if 'list' in query:
+            search_keywords = ['what is', 'what are', 'search', 'find', 'where', 'how', 'tell me about', 'explain']
+            
+            if any(keyword in query for keyword in search_keywords):
+                print("Detected SEARCH operation")
+                print(f"- Bucket: {bucket}")
+                
+                # Extract the actual search term by removing question words
+                search_term = input_text.lower()
+                for prefix in ['what is', 'what are', 'tell me about', 'explain']:
+                    if search_term.startswith(prefix):
+                        search_term = search_term[len(prefix):].strip()
+                        break
+                
+                print(f"- Search term: {search_term}")
+                
+                print("\nCalling SearchFilesTool...")
+                result = search_files._run({'bucket_name': bucket, 'search_term': search_term})
+                print(f"SearchFilesTool result: {result}")
+                return result
+            elif 'list' in query:
                 print("Detected LIST operation")
                 # List files command with optional filter
                 filter_type = 'pdf' if 'pdf' in query else ''
@@ -432,9 +544,9 @@ def get_s3_agent() -> S3Agent:
                 print(f"Routing to read file with query: {full_query}")
                 return read_file._run(full_query)
             else:
-                # Try list files by default
-                print(f"Default routing to list files for bucket: {bucket}")
-                return list_files._run(bucket)
+                # Try search by default for natural language queries
+                print(f"Default routing to search for bucket: {bucket}")
+                return search_files._run({'bucket_name': bucket, 'search_term': input_text})
         except Exception as e:
             return f"Error processing S3 request: {str(e)}"
     

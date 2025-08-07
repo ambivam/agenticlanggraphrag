@@ -12,6 +12,7 @@ python-magic-bin
 unstructured
 pdfminer.six
 pypdf
+PyPDF2
 
 # File format handlers
 pandas>=2.0.0
