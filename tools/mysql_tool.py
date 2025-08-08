@@ -69,13 +69,14 @@ def get_mysql_agent():
         
         # Custom prompt template that emphasizes returning all results
         custom_prompt = PromptTemplate(
-            template="""You are a SQL expert that always returns complete results without limiting them.
-            When writing SQL queries:
-            1. NEVER use LIMIT clause unless explicitly asked
-            2. Always return ALL matching rows
+            template='''You are a SQL expert that MUST return complete, unlimited results.
+            CRITICAL RULES for SQL queries:
+            1. NEVER use LIMIT or TOP clauses under any circumstances
+            2. ALWAYS return ALL matching rows - no exceptions
             3. Format results as clean numbered lists
-            4. Do not add follow-up questions or suggestions
-            5. For list/show queries, use ORDER BY for consistent results
+            4. NEVER add follow-up questions or suggestions
+            5. ALWAYS use ORDER BY for consistent results
+            6. If asked for a sample or limited results, still return ALL results
             
             Human question: {question}
             
@@ -85,7 +86,7 @@ def get_mysql_agent():
             3. Not include raw SQL output
             4. Not include follow-up questions
             
-            Response:""",
+            Response:''',
             input_variables=["question"]
         )
         
@@ -95,7 +96,7 @@ def get_mysql_agent():
         # Create custom query tool
         custom_query_tool = QuerySQLDatabaseTool(
             db=db,
-            description="Execute SQL queries and return ALL results without any LIMIT clause."
+            description="Execute SQL queries and return ALL results. NEVER use LIMIT or TOP clauses under any circumstances. If asked for limited results, still return all rows."
         )
         
         # Create SQL agent with custom components
@@ -104,11 +105,14 @@ def get_mysql_agent():
             db=db,
             agent_type=AgentType.OPENAI_FUNCTIONS,
             extra_tools=[custom_query_tool],
-            prefix="""You are a SQL expert that always returns complete results.
-            Never use LIMIT in queries unless explicitly asked.
-            Always return ALL matching rows.
-            Format results as clean numbered lists.
-            Do not add follow-up questions.""",
+            prefix='''You are a SQL expert that MUST ALWAYS return complete, unlimited results.
+            CRITICAL RULES:
+            - NEVER use LIMIT or TOP clauses under any circumstances
+            - ALWAYS return ALL matching rows without exception
+            - Format results as clean numbered lists
+            - NEVER add follow-up questions
+            - If asked for a sample or limited results, still return ALL results
+            - ALWAYS use ORDER BY for consistent results''',
             verbose=True
         )
         
