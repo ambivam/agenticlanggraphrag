@@ -461,6 +461,7 @@ def get_s3_agent() -> S3Agent:
     list_files = ListFilesTool()
     read_file = ReadFileTool()
     search_files = SearchFilesTool()
+    transfer_tool = TransferToRAGTool()
     
     # Create a wrapper function to route requests to the right tool
     def route_s3_request(inputs):
@@ -471,16 +472,22 @@ def get_s3_agent() -> S3Agent:
             input_text = inputs.get('input', '')
             bucket = inputs.get('bucket', '')
             
-            print(f"\nParsing request:")
-            print(f"- Input text: {input_text}")
-            print(f"- Bucket: {bucket}")
-            
             if not bucket:
-                print("Error: No bucket specified")
-                return "Error: No bucket specified"
-                
+                return "No bucket specified"
+            
+            # Parse query
             query = input_text.strip().lower()
             print(f"- Normalized query: {query}")
+            
+            # Check for transfer command
+            if 'transfer' in query and ('rag' in query or 'knowledge base' in query):
+                print("Detected TRANSFER operation")
+                print(f"- Bucket: {bucket}")
+                
+                print("\nCalling TransferToRAGTool...")
+                result = transfer_tool._run({'bucket_name': bucket})
+                print(f"TransferToRAGTool result: {result}")
+                return result
             
             # Extract file name for read operations
             file_name = None
@@ -530,27 +537,39 @@ def get_s3_agent() -> S3Agent:
                 return result
             elif file_name:
                 print("Detected READ operation")
+                print(f"- Bucket: {bucket}")
                 print(f"- File: {file_name}")
                 
                 print("\nCalling ReadFileTool...")
-                result = read_file._run({'bucket_name': bucket, 'file_path': file_name})
+                result = read_file._run({'bucket_name': bucket, 'file_name': file_name})
                 print(f"ReadFileTool result: {result}")
                 return result
-            elif any(word in query for word in ['read', 'show', 'content', 'get']):
-                # Read file command
-                words = query.split()
-                file_name = next((word for word in reversed(words) if '.pdf' in word or '.txt' in word), words[-1])
-                full_query = f"{bucket}:{file_name}"
-                print(f"Routing to read file with query: {full_query}")
-                return read_file._run(full_query)
             else:
-                # Try search by default for natural language queries
-                print(f"Default routing to search for bucket: {bucket}")
-                return search_files._run({'bucket_name': bucket, 'search_term': input_text})
+                # Default to search with the whole query as search term
+                print("No specific operation detected, defaulting to SEARCH")
+                print(f"- Bucket: {bucket}")
+                print(f"- Search term: {input_text}")
+                
+                print("\nCalling SearchFilesTool...")
+                result = search_files._run({'bucket_name': bucket, 'search_term': input_text})
+                print(f"SearchFilesTool result: {result}")
+                return result
         except Exception as e:
-            return f"Error processing S3 request: {str(e)}"
+            print(f"Error in route_s3_request: {str(e)}")
+            return str(e)
     
     # Create an agent that uses the router
+    def list_buckets():
+        """List all available S3 buckets."""
+        try:
+            s3_client = boto3.client('s3')
+            response = s3_client.list_buckets()
+            buckets = [bucket['Name'] for bucket in response['Buckets']]
+            return buckets
+        except Exception as e:
+            print(f"Error listing buckets: {str(e)}")
+            return []
+
     class DirectS3Agent:
         def __init__(self):
             self.is_s3_agent = True

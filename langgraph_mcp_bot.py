@@ -289,8 +289,8 @@ def final_answer_node(state: ChatState) -> ChatState:
         state['final_answer'] = "No relevant information found from enabled modules."
         state['found'] = False
     
-    # Save response to file
-    if state['final_answer']:
+    # Save response to file (skip for transfer operations)
+    if state['final_answer'] and 'transfer' not in state['input'].lower():
         try:
             # Create output directory if it doesn't exist
             output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
@@ -535,45 +535,50 @@ def entry_node(state: ChatState) -> ChatState:
     state["current_node"] = "entry"
     return state
 
-# LangGraph flow
-graph = StateGraph(ChatState)
+def create_bot():
+    """Create and return the LangGraph chatbot."""
+    # LangGraph flow
+    graph = StateGraph(ChatState)
+    
+    # Add nodes
+    graph.add_node("entry", entry_node)
+    graph.add_node("RAG", rag_node)
+    graph.add_node("MySQL", mysql_node)
+    graph.add_node("WebSearch", serp_node)
+    graph.add_node("JIRA", jira_node)
+    graph.add_node("TestCases", test_case_node)
+    graph.add_node("S3", s3_node)
+    graph.add_node("Answer", final_answer_node)
+    
+    # Set entry point
+    graph.set_entry_point("entry")
+    
+    # Add conditional edges from entry and modules
+    graph.add_conditional_edges(
+        "entry",
+        get_next_node,
+        {
+            "RAG": "RAG",
+            "MySQL": "MySQL",
+            "WebSearch": "WebSearch",
+            "JIRA": "JIRA",
+            "S3": "S3",
+            "Answer": "Answer"
+        }
+    )
+    
+    # Add edges from modules to Answer
+    graph.add_edge("RAG", "Answer")
+    graph.add_edge("MySQL", "Answer")
+    graph.add_edge("WebSearch", "Answer")
+    graph.add_edge("JIRA", "Answer")
+    graph.add_edge("S3", "Answer")
+    
+    # Set finish point
+    graph.set_finish_point("Answer")
+    
+    # Compile and return the graph
+    return graph.compile()
 
-# Add nodes
-graph.add_node("entry", entry_node)
-graph.add_node("RAG", rag_node)
-graph.add_node("MySQL", mysql_node)
-graph.add_node("WebSearch", serp_node)
-graph.add_node("JIRA", jira_node)
-graph.add_node("TestCases", test_case_node)
-graph.add_node("S3", s3_node)
-graph.add_node("Answer", final_answer_node)
-
-# Set entry point
-graph.set_entry_point("entry")
-
-# Add conditional edges from entry and modules
-graph.add_conditional_edges(
-    "entry",
-    get_next_node,
-    {
-        "RAG": "RAG",
-        "MySQL": "MySQL",
-        "WebSearch": "WebSearch",
-        "JIRA": "JIRA",
-        "S3": "S3",
-        "Answer": "Answer"
-    }
-)
-
-# Add edges from modules to Answer
-graph.add_edge("RAG", "Answer")
-graph.add_edge("MySQL", "Answer")
-graph.add_edge("WebSearch", "Answer")
-graph.add_edge("JIRA", "Answer")
-graph.add_edge("S3", "Answer")
-
-# Set finish point
-graph.set_finish_point("Answer")
-
-# Compile the graph
-app = graph.compile()
+# Export the create_bot function and ModuleManager
+__all__ = ['create_bot', 'ModuleManager']
