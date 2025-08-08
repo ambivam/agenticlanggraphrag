@@ -325,7 +325,9 @@ class TransferToRAGTool(BaseTool):
             
             # List all files in the bucket
             try:
-                # Use boto3 directly to list files
+                # Get base directory for FAISS index
+                base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                faiss_dir = os.path.join(base_dir, "faiss_index")
                 print("Listing files in bucket...")
                 paginator = self.s3_client.get_paginator('list_objects_v2')
                 files = []
@@ -339,11 +341,8 @@ class TransferToRAGTool(BaseTool):
             except Exception as e:
                 return f"Error listing files: {str(e)}"
 
-            # Create data directory if it doesn't exist
-            data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
-            os.makedirs(data_dir, exist_ok=True)
-
             transferred_files = []
+            temp_paths = {}
             for file_name in files:
                 try:
                     # Process text and document files
@@ -354,18 +353,20 @@ class TransferToRAGTool(BaseTool):
 
                     print(f"Reading file: {file_name}")
                     try:
-                        # Download file directly using boto3
-                        local_path = os.path.join(data_dir, os.path.basename(file_name))
-                        print(f"Downloading to: {local_path}")
-                        
-                        self.s3_client.download_file(
-                            bucket_name,
-                            file_name,
-                            local_path
-                        )
+                        # Create a temporary file
+                        import tempfile
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file_name)[1]) as temp_file:
+                            # Download to temp file
+                            self.s3_client.download_fileobj(
+                                bucket_name,
+                                file_name,
+                                temp_file
+                            )
+                            temp_path = temp_file.name
                         
                         transferred_files.append(file_name)
-                        print(f"Transferred: {file_name}")
+                        temp_paths[file_name] = temp_path
+                        print(f"Downloaded to temp file: {temp_path}")
                     except Exception as download_error:
                         print(f"Error downloading {file_name}: {str(download_error)}")
                         continue
@@ -388,28 +389,31 @@ class TransferToRAGTool(BaseTool):
                 
                 # Process each transferred file
                 for file_name in transferred_files:
-                    file_path = os.path.join(data_dir, os.path.basename(file_name))
+                    temp_path = temp_paths[file_name]
                     try:
                         if file_name.lower().endswith('.pdf'):
-                            docs = process_pdf(file_path)
+                            docs = process_pdf(temp_path)
                         elif file_name.lower().endswith('.docx'):
-                            docs = process_word(file_path)
+                            docs = process_word(temp_path)
                         elif file_name.lower().endswith('.pptx'):
-                            docs = process_powerpoint(file_path)
+                            docs = process_powerpoint(temp_path)
                         elif file_name.lower().endswith('.md'):
-                            docs = process_markdown(file_path)
+                            docs = process_markdown(temp_path)
                         elif file_name.lower().endswith('.json'):
-                            docs = process_json(file_path)
+                            docs = process_json(temp_path)
                         elif file_name.lower().endswith('.csv'):
-                            docs = process_csv(file_path)
+                            docs = process_csv(temp_path)
                         elif file_name.lower().endswith('.txt'):
-                            with open(file_path, 'r', encoding='utf-8') as f:
+                            with open(temp_path, 'r', encoding='utf-8') as f:
                                 text = f.read()
-                                docs = [Document(page_content=text, metadata={'source': file_path})]
+                                docs = [Document(page_content=text, metadata={'source': file_name})]
                         else:
                             print(f"Skipping unsupported file: {file_name}")
                             continue
-                            
+                        
+                        # Clean up temp file
+                        os.unlink(temp_path)
+                        
                         if docs:
                             print(f"Processed {len(docs)} chunks from {file_name}")
                             documents.extend(docs)
@@ -421,7 +425,7 @@ class TransferToRAGTool(BaseTool):
                     return "No documents were successfully processed"
                     
                 # Load existing FAISS index if it exists
-                faiss_dir = os.path.join(os.path.dirname(data_dir), "faiss_index")
+                os.makedirs(faiss_dir, exist_ok=True)
                 embeddings = OpenAIEmbeddings()
                 
                 try:
