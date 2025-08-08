@@ -2,15 +2,68 @@ from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_community.tools.sql_database.tool import QuerySQLDatabaseTool
 from langchain.agents import AgentExecutor, create_sql_agent
 from langchain.agents.agent_types import AgentType
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
+from langchain_community.vectorstores import FAISS
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.docstore.document import Document
 import os
+import json
 
 class SQLAgent:
     def __init__(self, agent_executor):
         self.agent_executor = agent_executor
         self.is_sql_agent = True
+        self.embeddings = OpenAIEmbeddings()
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=500,  # Smaller chunks for specific data retrieval
+            chunk_overlap=100,  # Moderate overlap
+            separators=["\n\n", "\n", ".", ",", " ", ""]
+        )
+        
+        # Ensure FAISS directory exists
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.faiss_dir = os.path.join(base_dir, "faiss_index")
+        os.makedirs(self.faiss_dir, exist_ok=True)
+    
+    def _store_in_faiss(self, content, source_type, extra_metadata=None):
+        try:
+            # Create document
+            doc = Document(
+                page_content=content,
+                metadata={"source": source_type, "timestamp": os.path.getmtime(self.faiss_dir), **(extra_metadata or {})}
+            )
+            
+            # Split into chunks
+            chunks = self.text_splitter.split_documents([doc])
+            
+            # Load existing index if it exists
+            index_path = os.path.join(self.faiss_dir, "index.faiss")
+            if os.path.exists(index_path):
+                db = FAISS.load_local(self.faiss_dir, self.embeddings, allow_dangerous_deserialization=True)
+                # Set default search parameters
+                db.similarity_search_with_score_kwargs = {
+                    "k": 10,  # Retrieve more chunks
+                    "score_threshold": 0.3  # Lower threshold for better recall
+                }
+                # Add new chunks to existing index
+                db.add_documents(chunks)
+            else:
+                # Create new index
+                db = FAISS.from_documents(chunks, self.embeddings)
+            # Set default search parameters
+            db.similarity_search_with_score_kwargs = {
+                "k": 10,  # Retrieve more chunks
+                "score_threshold": 0.5  # Adjust similarity threshold
+            }
+            
+            # Save updated index
+            db.save_local(self.faiss_dir)
+            print(f"Stored {len(chunks)} chunks in FAISS from {source_type}")
+            
+        except Exception as e:
+            print(f"Error storing in FAISS: {str(e)}")
     
     def invoke(self, input_text):
         # Handle common list queries directly
@@ -27,9 +80,11 @@ class SQLAgent:
             else:
                 countries = [r[0] for r in results]
                 
-            output = "Here is a complete list of all countries:\n\n"
+            output = f"Found {len(countries)} countries in total.\n\nHere is the complete list:\n\n"
             output += '\n'.join(f"{i+1}. {country}" for i, country in enumerate(countries))
             
+            # Store in FAISS with enhanced metadata
+            self._store_in_faiss(output, "country_list", {"total_count": len(countries)})
             return {"output": output}
         
         # For other queries, use the agent but clean up output
@@ -42,6 +97,9 @@ class SQLAgent:
             if 'do you need' in result['output'].lower():
                 result['output'] = result['output'].split('Do you need')[0].strip()
         
+        # Store the result in FAISS if it's valid
+        if isinstance(result, dict) and isinstance(result.get('output'), str):
+            self._store_in_faiss(result['output'], "sql_query_result")
         return result
 
 def get_mysql_agent():
