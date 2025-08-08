@@ -82,9 +82,9 @@ class ListFilesTool(BaseTool):
                 bucket_name = parts[0].strip()
                 file_filter = parts[1].strip() if len(parts) > 1 else ''
                 
-            print(f"\nAWS Credentials:")
-            print(f"AWS_ACCESS_KEY_ID: {'✓ Set' if os.getenv('AWS_ACCESS_KEY_ID') else '✗ Not set'}")
-            print(f"AWS_SECRET_ACCESS_KEY: {'✓ Set' if os.getenv('AWS_SECRET_ACCESS_KEY') else '✗ Not set'}")
+            print("\nAWS Credentials:")
+            print(f"AWS_ACCESS_KEY_ID: {'Set' if os.getenv('AWS_ACCESS_KEY_ID') else 'Not set'}")
+            print(f"AWS_SECRET_ACCESS_KEY: {'Set' if os.getenv('AWS_SECRET_ACCESS_KEY') else 'Not set'}")
             print(f"AWS_REGION: {os.getenv('AWS_REGION', 'Not set')}")
             
             print(f"\nListing files:")
@@ -96,24 +96,23 @@ class ListFilesTool(BaseTool):
             # List files in bucket
             try:
                 print(f"Calling S3 list_objects_v2...")
-                response = self.s3_client.list_objects_v2(Bucket=bucket_name)
-                print(f"Response received")
+                files = []
+                paginator = self.s3_client.get_paginator('list_objects_v2')
+                page_iterator = paginator.paginate(Bucket=bucket_name)
                 
-                if 'Contents' not in response:
+                for page in page_iterator:
+                    if 'Contents' in page:
+                        page_files = [item['Key'] for item in page['Contents']]
+                        files.extend(page_files)
+                        print(f"Found {len(page_files)} files in page")
+                        for file in page_files:
+                            print(f"- {file}")
+                
+                if not files:
                     print("No files found in bucket")
                     return f"No files found in bucket '{bucket_name}'"
-                    
-                # Get all files
-                files = [item['Key'] for item in response['Contents']]
-                print(f"Found {len(files)} files:")
-                for file in files:
-                    print(f"- {file}")
                 
-                if 'Contents' not in response:
-                    return f"No files found in bucket '{bucket_name}'"
-                    
-                # Get all files
-                files = [item['Key'] for item in response['Contents']]
+                print(f"Total files found: {len(files)}")
                 
                 # Apply filter if provided
                 if file_filter:
@@ -284,6 +283,108 @@ class ReadFileTool(BaseTool):
                 return f"AWS Error: {str(e)}"
         except Exception as e:
             return f"Error reading file: {str(e)}"
+
+class TransferToRAGTool(BaseTool):
+    name: str = "transfer_to_rag"
+    description: str = "Transfer files from an S3 bucket to the RAG knowledge base"
+    s3_client: Any = None
+    list_files_tool: Any = None
+    read_file_tool: Any = None
+
+    def __init__(self):
+        super().__init__()
+        load_dotenv()
+        
+        access_key = os.getenv('AWS_ACCESS_KEY_ID')
+        secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
+        region = os.getenv('AWS_REGION', 'us-east-1')
+        
+        if not access_key or not secret_key:
+            raise ValueError("AWS credentials not found in environment variables")
+            
+        self.s3_client = boto3.client(
+            's3',
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key,
+            region_name=region
+        )
+        self.list_files_tool = ListFilesTool()
+        self.read_file_tool = ReadFileTool()
+
+    def _run(self, tool_input: str) -> str:
+        print(f"\n=== TransferToRAGTool Called ===\nInput: {tool_input}")
+        try:
+            # Parse input format: bucket_name
+            if isinstance(tool_input, dict):
+                bucket_name = tool_input.get('bucket_name', '')
+            else:
+                bucket_name = tool_input.strip()
+
+            print(f"\nTransferring files from bucket: {bucket_name}")
+            
+            # List all files in the bucket
+            try:
+                # Use boto3 directly to list files
+                print("Listing files in bucket...")
+                paginator = self.s3_client.get_paginator('list_objects_v2')
+                files = []
+                
+                for page in paginator.paginate(Bucket=bucket_name):
+                    if 'Contents' in page:
+                        for obj in page['Contents']:
+                            files.append(obj['Key'])
+                            
+                print(f"Found {len(files)} files in bucket")
+            except Exception as e:
+                return f"Error listing files: {str(e)}"
+
+            # Create data directory if it doesn't exist
+            data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+            os.makedirs(data_dir, exist_ok=True)
+
+            transferred_files = []
+            for file_name in files:
+                try:
+                    # Process text and document files
+                    if not file_name.lower().endswith(('.txt', '.md', '.json', '.csv', '.pdf', '.docx', '.doc')):
+                        print(f"Skipping non-supported file: {file_name}")
+                        continue
+                    print(f"Processing supported file: {file_name}")
+
+                    print(f"Reading file: {file_name}")
+                    try:
+                        # Download file directly using boto3
+                        local_path = os.path.join(data_dir, os.path.basename(file_name))
+                        print(f"Downloading to: {local_path}")
+                        
+                        self.s3_client.download_file(
+                            bucket_name,
+                            file_name,
+                            local_path
+                        )
+                        
+                        transferred_files.append(file_name)
+                        print(f"Transferred: {file_name}")
+                    except Exception as download_error:
+                        print(f"Error downloading {file_name}: {str(download_error)}")
+                        continue
+                except Exception as e:
+                    print(f"Error processing file {file_name}: {str(e)}")
+                    continue
+
+            # Rebuild FAISS index
+            try:
+                from ingest.create_index import create_faiss_index
+                create_faiss_index()
+                print("FAISS index rebuilt successfully")
+            except Exception as e:
+                return f"Files transferred but error rebuilding index: {str(e)}. Files: {transferred_files}"
+
+            return f"Successfully transferred {len(transferred_files)} files: {', '.join(transferred_files)}"
+
+        except Exception as e:
+            print(f"Error in TransferToRAGTool: {str(e)}")
+            return f"Error transferring files: {str(e)}"
 
 class SearchFilesTool(BaseTool):
     name: str = "search_files"
@@ -465,98 +566,75 @@ def get_s3_agent() -> S3Agent:
     
     # Create a wrapper function to route requests to the right tool
     def route_s3_request(inputs):
-        print("\n=== S3 Agent Routing ===")
-        print(f"Received inputs: {inputs}")
+        print("\n=== Routing S3 Request ===")
         try:
-            # Get input and bucket from context
             input_text = inputs.get('input', '')
-            bucket = inputs.get('bucket', '')
+            print(f"Input text: {input_text}")
             
-            if not bucket:
-                return "No bucket specified"
+            # Initialize tools
+            list_buckets = ListBucketsTool()
+            list_files = ListFilesTool()
+            read_file = ReadFileTool()
+            search_files = SearchFilesTool()
+            transfer_to_rag = TransferToRAGTool()
             
-            # Parse query
-            query = input_text.strip().lower()
-            print(f"- Normalized query: {query}")
+            # Extract bucket name if present
+            query = input_text.lower()
+            bucket = inputs.get('bucket_name', inputs.get('bucket', ''))
             
-            # Check for transfer command
+            # Check for transfer command first
             if 'transfer' in query and ('rag' in query or 'knowledge base' in query):
                 print("Detected TRANSFER operation")
-                print(f"- Bucket: {bucket}")
+                # Extract bucket name from the command if not provided
+                if not bucket and 'from' in query:
+                    parts = query.split('from')
+                    if len(parts) > 1:
+                        bucket = parts[1].strip().split()[0]
                 
+                print(f"- Bucket for transfer: {bucket}")
+                if not bucket:
+                    return "Error: No bucket specified for transfer"
+                    
                 print("\nCalling TransferToRAGTool...")
-                result = transfer_tool._run({'bucket_name': bucket})
+                # Skip RAG query and directly call transfer tool
+                result = transfer_to_rag._run({'bucket_name': bucket})
                 print(f"TransferToRAGTool result: {result}")
                 return result
-            
+                
+            # Handle other operations
+            if 'list' in query:
+                print("Detected LIST operation")
+                filter_type = 'pdf' if 'pdf' in query else ''
+                print(f"- Bucket: {bucket}")
+                print(f"- Filter: {filter_type}")
+                result = list_files._run({'bucket_name': bucket, 'filter': filter_type})
+                return result
+                
             # Extract file name for read operations
             file_name = None
             if any(word in query for word in ['read', 'show', 'content', 'get']):
-                # Look for file name after 'of' or at the end
                 parts = input_text.split('of')
                 if len(parts) > 1:
                     file_name = parts[1].strip()
                 else:
-                    # Try to find the last word that might be a filename
                     words = input_text.split()
                     if words:
                         file_name = words[-1].strip()
-                print(f"- Extracted file name: {file_name}")
+                
+                if file_name:
+                    print(f"Detected READ operation for file: {file_name}")
+                    result = read_file._run({'bucket_name': bucket, 'file_name': file_name})
+                    return result
             
-            print("\nRouting query...")
-            # Route based on query type
-            search_keywords = ['what is', 'what are', 'search', 'find', 'where', 'how', 'tell me about', 'explain']
+            # Default to list operation if no specific command detected
+            print("No specific operation detected, defaulting to LIST")
+            result = list_files._run({'bucket_name': bucket})
+            return result
             
-            if any(keyword in query for keyword in search_keywords):
-                print("Detected SEARCH operation")
-                print(f"- Bucket: {bucket}")
-                
-                # Extract the actual search term by removing question words
-                search_term = input_text.lower()
-                for prefix in ['what is', 'what are', 'tell me about', 'explain']:
-                    if search_term.startswith(prefix):
-                        search_term = search_term[len(prefix):].strip()
-                        break
-                
-                print(f"- Search term: {search_term}")
-                
-                print("\nCalling SearchFilesTool...")
-                result = search_files._run({'bucket_name': bucket, 'search_term': search_term})
-                print(f"SearchFilesTool result: {result}")
-                return result
-            elif 'list' in query:
-                print("Detected LIST operation")
-                # List files command with optional filter
-                filter_type = 'pdf' if 'pdf' in query else ''
-                print(f"- Bucket: {bucket}")
-                print(f"- Filter: {filter_type}")
-                
-                print("\nCalling ListFilesTool...")
-                result = list_files._run({'bucket_name': bucket, 'filter': filter_type})
-                print(f"ListFilesTool result: {result}")
-                return result
-            elif file_name:
-                print("Detected READ operation")
-                print(f"- Bucket: {bucket}")
-                print(f"- File: {file_name}")
-                
-                print("\nCalling ReadFileTool...")
-                result = read_file._run({'bucket_name': bucket, 'file_name': file_name})
-                print(f"ReadFileTool result: {result}")
-                return result
-            else:
-                # Default to search with the whole query as search term
-                print("No specific operation detected, defaulting to SEARCH")
-                print(f"- Bucket: {bucket}")
-                print(f"- Search term: {input_text}")
-                
-                print("\nCalling SearchFilesTool...")
-                result = search_files._run({'bucket_name': bucket, 'search_term': input_text})
-                print(f"SearchFilesTool result: {result}")
-                return result
         except Exception as e:
-            print(f"Error in route_s3_request: {str(e)}")
-            return str(e)
+            error_msg = f"Error in route_s3_request: {str(e)}"
+            print(error_msg)
+            return error_msg
     
     # Create an agent that uses the router
     def list_buckets():
@@ -575,7 +653,26 @@ def get_s3_agent() -> S3Agent:
             self.is_s3_agent = True
             
         def invoke(self, inputs):
+            # Ensure input is properly formatted
+            if isinstance(inputs, str):
+                inputs = {"input": inputs}
+            
+            # Extract bucket name from command if not provided
+            input_text = inputs.get('input', '')
+            bucket = inputs.get('bucket_name', '')
+            
+            if not bucket and 'from' in input_text.lower():
+                parts = input_text.lower().split('from')
+                if len(parts) > 1:
+                    bucket = parts[1].strip().split()[0]
+                    inputs['bucket_name'] = bucket
+            
             result = route_s3_request(inputs)
-            return {"input": inputs.get('input', ''), "final_answer": result}
+            
+            # Format response
+            if isinstance(result, str):
+                return result
+            else:
+                return {"input": input_text, "final_answer": result}
     
     return DirectS3Agent()

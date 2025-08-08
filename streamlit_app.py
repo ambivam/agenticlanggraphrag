@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from langgraph_mcp_bot import create_bot
+from langgraph_mcp_bot import app
 from module_manager import ModuleManager
 from tools.s3_tool import ListBucketsTool
 from typing import Dict, Any
@@ -9,7 +9,7 @@ from typing import Dict, Any
 if 'messages' not in st.session_state:
     st.session_state.messages = []
 if 'bot' not in st.session_state:
-    st.session_state.bot = create_bot()
+    st.session_state.bot = app  # Use the pre-created app instance
 if 'module_manager' not in st.session_state:
     st.session_state.module_manager = ModuleManager()
 
@@ -69,8 +69,18 @@ if st.session_state.module_manager.is_enabled('s3'):
                     st.rerun()
                 
                 with st.spinner("Transferring documents from S3 to RAG..."):
-                    response = st.session_state.bot.invoke({"input": f"transfer documents from {selected_bucket} to rag"})
-                    final_answer = response.get("final_answer", "No response generated")
+                    # Call S3 agent directly for transfer
+                    from tools.s3_tool import get_s3_agent
+                    s3_agent = get_s3_agent()
+                    response = s3_agent.invoke({
+                        "input": f"transfer documents from {selected_bucket} to rag",
+                        "bucket_name": selected_bucket
+                    })
+                    
+                    if isinstance(response, str):
+                        final_answer = response
+                    else:
+                        final_answer = response.get("final_answer", "No response generated")
                     
                     if "Successfully transferred" in final_answer:
                         st.sidebar.success("✅ Transfer complete!")

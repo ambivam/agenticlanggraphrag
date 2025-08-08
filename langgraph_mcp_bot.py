@@ -225,28 +225,37 @@ def s3_node(state: ChatState) -> ChatState:
         print("S3 module enabled, processing request...")
         s3_agent = get_s3_agent()
         
-        # Get input and bucket from state
+        # Get input text
         input_text = state.get('input', '')
-        bucket = state.get('bucket', '')
         print(f"Input: {input_text}")
+        
+        # Extract bucket name from transfer command
+        bucket = None
+        if 'from' in input_text.lower():
+            parts = input_text.lower().split('from')
+            if len(parts) > 1:
+                bucket = parts[1].strip().split()[0]
+        
+        # Use bucket from state as fallback
+        if not bucket:
+            bucket = state.get('bucket', '')
+        
         print(f"Bucket: {bucket}")
         
         # Create context for S3 agent
         s3_context = {
             'input': input_text,
-            'bucket': bucket
+            'bucket_name': bucket  # Changed to match TransferToRAGTool parameter name
         }
         
         print("Calling S3 agent...")
         response = s3_agent.invoke(s3_context)
         print(f"S3 agent response: {response}")
         
-        if response and response.get('final_answer'):
-            state['s3_context'] = response['final_answer']
+        if response:
+            state['s3_context'] = str(response)
             state['found'] = True
             print(f"Updated state with S3 response: {state}")
-    return state
-        
     return state
 
 def final_answer_node(state: ChatState) -> ChatState:
@@ -505,12 +514,15 @@ def get_next_node(state: ChatState) -> str:
     print(f"\nRouting - Current Node: {current_node}")
     
     if current_node == "entry":
-        # Check S3 first if bucket is present
-        if module_manager.is_enabled('s3') and state.get('bucket'):
-            print("Routing to S3 node - bucket present")
+        query = state.get('input', '').lower()
+        
+        # Check for S3 transfer command first
+        if module_manager.is_enabled('s3') and ('transfer to rag' in query or 'transfer to knowledge base' in query):
+            print("Routing to S3 node - transfer command detected")
             state["current_node"] = "S3"
             return "S3"
-            
+        
+        # Check other modules
         if module_manager.is_enabled('rag'):
             state["current_node"] = "RAG"
             return "RAG"
@@ -580,5 +592,8 @@ def create_bot():
     # Compile and return the graph
     return graph.compile()
 
-# Export the create_bot function and ModuleManager
-__all__ = ['create_bot', 'ModuleManager']
+# Create and export the app instance
+app = create_bot()
+
+# Export the app, create_bot function and ModuleManager
+__all__ = ['app', 'create_bot', 'ModuleManager']

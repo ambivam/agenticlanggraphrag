@@ -1,0 +1,5 @@
+Module: RAG
+Query: what did Harvey Alper presented
+
+Response:
+From knowledge base: Harvey Alper presented mantras from the linguistic point of view. He admitted Staal's observation that many mantras contain bits and pieces of meaningless jargon, but questioned what language or text doesn't have these. He also pointed out that the presence of an 'abracadabra' bit doesn't necessarily imply the entire work is meaningless. Alper listed numerous mantras that have philosophical themes, moral principles, a call to virtuous life, and even mundane aspects.

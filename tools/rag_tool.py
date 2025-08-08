@@ -11,8 +11,33 @@ class RAGTool:
     def invoke(self, input_text):
         try:
             print(f"\nRAG Tool - Processing query: {input_text}")
+            
+            # Get raw similarity search results first
+            if hasattr(self.chain, 'retriever') and hasattr(self.chain.retriever, 'vectorstore'):
+                print("\nPerforming similarity search...")
+                similar_docs = self.chain.retriever.vectorstore.similarity_search_with_score(
+                    input_text,
+                    k=5
+                )
+                print("\nSimilarity search results:")
+                for i, (doc, score) in enumerate(similar_docs, 1):
+                    print(f"\nResult {i} (similarity score: {score:.4f}):")
+                    print(f"Content preview: {doc.page_content[:200]}...")
+                    print(f"Metadata: {doc.metadata}")
+            
+            # Now invoke the chain
             result = self.chain.invoke(input_text)
-            print(f"RAG Tool - Got result: {result}")
+            print(f"\nRAG Tool - Got result: {result}")
+            
+            # Extract source documents and scores
+            if hasattr(result, 'get') and result.get('source_documents'):
+                print("\nSource documents used:")
+                for i, doc in enumerate(result['source_documents'], 1):
+                    print(f"\nDocument {i}:")
+                    print(f"Content: {doc.page_content[:200]}...")
+                    if hasattr(doc, 'metadata'):
+                        print(f"Metadata: {doc.metadata}")
+            
             return result
         except Exception as e:
             print(f"\nError in RAG Tool invoke: {str(e)}")
@@ -47,14 +72,40 @@ def get_rag_chain():
         print("Loading FAISS index...")
         db = FAISS.load_local(faiss_dir, embeddings, allow_dangerous_deserialization=True)
         
-        print("Creating retriever...")
-        retriever = db.as_retriever()
+        # Debug: Print total documents in index
+        try:
+            doc_count = len(db.docstore._dict)
+            print(f"Total documents in FAISS index: {doc_count}")
+            print("\nSample document IDs and contents:")
+            for doc_id in list(db.docstore._dict.keys())[:3]:  # Show first 3 docs
+                doc = db.docstore._dict[doc_id]
+                print(f"\nDoc ID: {doc_id}")
+                print(f"Content preview: {doc.page_content[:200]}...")
+                print(f"Metadata: {doc.metadata}")
+        except Exception as e:
+            print(f"Error inspecting index: {str(e)}")
+        
+        print("\nCreating retriever...")
+        retriever = db.as_retriever(
+            search_type="mmr",  # Use MMR for diversity
+            search_kwargs={
+                "k": 5,  # Number of documents to retrieve
+                "lambda_mult": 0.7,  # MMR diversity factor (0=max diversity, 1=max relevance)
+                "fetch_k": 10,  # Fetch more docs then select k most diverse
+                "score_threshold": 0.5,  # Minimum similarity score threshold
+            }
+        )
         
         print("Creating RAG chain...")
         chain = RetrievalQA.from_chain_type(
-            llm=ChatOpenAI(temperature=0.7),
+            llm=ChatOpenAI(
+                temperature=0.7,
+                model="gpt-4"  # Use GPT-4 for better comprehension
+            ),
+            chain_type="stuff",  # Combine all docs into single context
             retriever=retriever,
-            return_source_documents=True
+            return_source_documents=True,
+            verbose=True  # Add verbose output for debugging
         )
         
         print("Wrapping chain in RAGTool...")

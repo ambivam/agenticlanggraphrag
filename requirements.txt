@@ -9,10 +9,13 @@ python-dotenv
 pymysql
 google-search-results
 python-magic-bin
-unstructured
+
+# Document processing
+unstructured[pdf,docx,pptx,md]
 pdfminer.six
 pypdf
 PyPDF2
+markdown
 
 # File format handlers
 pandas>=2.0.0

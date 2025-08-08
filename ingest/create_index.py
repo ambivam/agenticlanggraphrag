@@ -1,8 +1,15 @@
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import DirectoryLoader, TextLoader
+from langchain_community.document_loaders import (
+    DirectoryLoader,
+    TextLoader,
+    PDFMinerLoader,
+    Docx2txtLoader,
+    UnstructuredMarkdownLoader
+)
 import os
+from typing import List, Dict, Any
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -37,23 +44,52 @@ def create_faiss_index():
         The system tries each source in sequence until it finds a good answer.
         """)
     
-    # Load documents
+    # Load documents from multiple file types
     print("Loading documents...")
-    loader = DirectoryLoader(data_dir, glob="**/*.txt", loader_cls=TextLoader)
-    documents = loader.load()
-    print(f"Loaded {len(documents)} documents")
+    loaders = [
+        ("**/*.txt", TextLoader),
+        ("**/*.pdf", PDFMinerLoader),
+        ("**/*.docx", Docx2txtLoader),
+        ("**/*.md", UnstructuredMarkdownLoader)
+    ]
+    
+    documents = []
+    for glob_pattern, loader_cls in loaders:
+        try:
+            loader = DirectoryLoader(data_dir, glob=glob_pattern, loader_cls=loader_cls)
+            docs = loader.load()
+            print(f"Loaded {len(docs)} documents from {glob_pattern}")
+            if docs:
+                print("Sample files:")
+                for doc in docs[:3]:  # Show first 3 files
+                    print(f"- {doc.metadata.get('source', 'Unknown source')}")
+            documents.extend(docs)
+        except Exception as e:
+            print(f"Error loading {glob_pattern}: {str(e)}")
+    
+    print(f"\nTotal documents loaded: {len(documents)}")
     
     if not documents:
         raise ValueError("No documents found in the data directory!")
     
-    # Split documents
-    print("Splitting documents...")
+    # Split documents with better chunking
+    print("\nSplitting documents...")
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=200,
+        chunk_size=500,  # Smaller chunks for better retrieval
+        chunk_overlap=100,  # Decent overlap to maintain context
+        length_function=len,
+        separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""],  # More granular splitting
+        keep_separator=True
     )
     texts = text_splitter.split_documents(documents)
     print(f"Created {len(texts)} text chunks")
+    
+    # Debug: Show sample chunks
+    print("\nSample chunks:")
+    for i, chunk in enumerate(texts[:3], 1):  # Show first 3 chunks
+        print(f"\nChunk {i}:")
+        print(f"Source: {chunk.metadata.get('source', 'Unknown')}")
+        print(f"Content preview: {chunk.page_content[:200]}...")
     
     # Create and save FAISS index
     print("Creating embeddings and FAISS index...")
