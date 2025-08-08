@@ -5,6 +5,7 @@ from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.tools import BaseTool
 from langchain.memory import ConversationBufferMemory
+from langchain.docstore.document import Document
 import boto3
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
@@ -346,7 +347,7 @@ class TransferToRAGTool(BaseTool):
             for file_name in files:
                 try:
                     # Process text and document files
-                    if not file_name.lower().endswith(('.txt', '.md', '.json', '.csv', '.pdf', '.docx', '.doc')):
+                    if not file_name.lower().endswith(('.txt', '.md', '.json', '.csv', '.pdf', '.docx', '.doc', '.pptx')):
                         print(f"Skipping non-supported file: {file_name}")
                         continue
                     print(f"Processing supported file: {file_name}")
@@ -372,13 +373,75 @@ class TransferToRAGTool(BaseTool):
                     print(f"Error processing file {file_name}: {str(e)}")
                     continue
 
-            # Rebuild FAISS index
+            # Process and add files to FAISS index
             try:
-                from ingest.create_index import create_faiss_index
-                create_faiss_index()
-                print("FAISS index rebuilt successfully")
+                from langchain_community.vectorstores import FAISS
+                from langchain_openai import OpenAIEmbeddings
+                from langchain.text_splitter import RecursiveCharacterTextSplitter
+                from ingest.file_handlers import (
+                    process_word, process_pdf, process_powerpoint,
+                    process_markdown, process_json, process_csv
+                )
+                
+                print("Processing transferred files and updating FAISS index...")
+                documents = []
+                
+                # Process each transferred file
+                for file_name in transferred_files:
+                    file_path = os.path.join(data_dir, os.path.basename(file_name))
+                    try:
+                        if file_name.lower().endswith('.pdf'):
+                            docs = process_pdf(file_path)
+                        elif file_name.lower().endswith('.docx'):
+                            docs = process_word(file_path)
+                        elif file_name.lower().endswith('.pptx'):
+                            docs = process_powerpoint(file_path)
+                        elif file_name.lower().endswith('.md'):
+                            docs = process_markdown(file_path)
+                        elif file_name.lower().endswith('.json'):
+                            docs = process_json(file_path)
+                        elif file_name.lower().endswith('.csv'):
+                            docs = process_csv(file_path)
+                        elif file_name.lower().endswith('.txt'):
+                            with open(file_path, 'r', encoding='utf-8') as f:
+                                text = f.read()
+                                docs = [Document(page_content=text, metadata={'source': file_path})]
+                        else:
+                            print(f"Skipping unsupported file: {file_name}")
+                            continue
+                            
+                        if docs:
+                            print(f"Processed {len(docs)} chunks from {file_name}")
+                            documents.extend(docs)
+                    except Exception as e:
+                        print(f"Error processing {file_name}: {str(e)}")
+                        continue
+                
+                if not documents:
+                    return "No documents were successfully processed"
+                    
+                # Load existing FAISS index if it exists
+                faiss_dir = os.path.join(os.path.dirname(data_dir), "faiss_index")
+                embeddings = OpenAIEmbeddings()
+                
+                try:
+                    print("Loading existing FAISS index...")
+                    db = FAISS.load_local(faiss_dir, embeddings, allow_dangerous_deserialization=True)
+                    # Add new documents to existing index
+                    print(f"Adding {len(documents)} new chunks to existing index...")
+                    db.add_documents(documents)
+                except Exception as e:
+                    print(f"No existing index found or error loading it: {str(e)}")
+                    print("Creating new FAISS index...")
+                    db = FAISS.from_documents(documents, embeddings)
+                
+                # Save the updated index
+                os.makedirs(faiss_dir, exist_ok=True)
+                db.save_local(faiss_dir)
+                print("FAISS index updated successfully")
+                
             except Exception as e:
-                return f"Files transferred but error rebuilding index: {str(e)}. Files: {transferred_files}"
+                return f"Files transferred but error updating index: {str(e)}. Files: {transferred_files}"
 
             return f"Successfully transferred {len(transferred_files)} files: {', '.join(transferred_files)}"
 

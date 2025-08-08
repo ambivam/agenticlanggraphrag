@@ -55,6 +55,8 @@ def create_faiss_index():
                     docs = process_pdf(file_path)
                 elif file.lower().endswith('.docx'):
                     docs = process_word(file_path)
+                elif file.lower().endswith('.pptx'):
+                    docs = process_powerpoint(file_path)
                 elif file.lower().endswith('.md'):
                     docs = process_markdown(file_path)
                 else:

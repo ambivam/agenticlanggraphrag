@@ -89,10 +89,10 @@ def get_rag_chain():
         retriever = db.as_retriever(
             search_type="mmr",  # Use MMR for diversity
             search_kwargs={
-                "k": 5,  # Number of documents to retrieve
+                "k": 3,  # Reduced number of documents to retrieve
                 "lambda_mult": 0.7,  # MMR diversity factor (0=max diversity, 1=max relevance)
-                "fetch_k": 10,  # Fetch more docs then select k most diverse
-                "score_threshold": 0.5,  # Minimum similarity score threshold
+                "fetch_k": 5,  # Fetch more docs then select k most diverse
+                "score_threshold": 0.7,  # Increased similarity threshold for better relevance
             }
         )
         
@@ -102,7 +102,7 @@ def get_rag_chain():
                 temperature=0.7,
                 model="gpt-4"  # Use GPT-4 for better comprehension
             ),
-            chain_type="stuff",  # Combine all docs into single context
+            chain_type="map_reduce",  # Use map_reduce for handling more content
             retriever=retriever,
             return_source_documents=True,
             verbose=True  # Add verbose output for debugging
