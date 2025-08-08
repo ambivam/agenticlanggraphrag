@@ -5,6 +5,7 @@ from pptx import Presentation
 import json
 import os
 from langchain.docstore.document import Document as LangchainDocument
+from langchain_community.document_loaders import PDFMinerLoader
 
 def process_excel(file_path: str) -> List[LangchainDocument]:
     """Process Excel files (.xlsx, .xls)."""
@@ -47,6 +48,16 @@ def process_csv(file_path: str) -> List[LangchainDocument]:
         ]
     except Exception as e:
         print(f"Error processing CSV file: {str(e)}")
+        return []
+
+def process_pdf(file_path: str) -> List[LangchainDocument]:
+    """Process PDF files using PDFMiner."""
+    try:
+        loader = PDFMinerLoader(file_path)
+        documents = loader.load()
+        return documents
+    except Exception as e:
+        print(f"Error processing PDF file: {str(e)}")
         return []
 
 def process_word(file_path: str) -> List[LangchainDocument]:

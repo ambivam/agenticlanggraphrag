@@ -1,16 +1,11 @@
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import (
-    DirectoryLoader,
-    TextLoader,
-    PDFMinerLoader,
-    Docx2txtLoader,
-    UnstructuredMarkdownLoader
-)
+from langchain_community.document_loaders import DirectoryLoader, TextLoader
 import os
 from typing import List, Dict, Any
 from dotenv import load_dotenv
+from .file_handlers import process_word, process_pdf, process_markdown
 
 load_dotenv()
 
@@ -46,26 +41,31 @@ def create_faiss_index():
     
     # Load documents from multiple file types
     print("Loading documents...")
-    loaders = [
-        ("**/*.txt", TextLoader),
-        ("**/*.pdf", PDFMinerLoader),
-        ("**/*.docx", Docx2txtLoader),
-        ("**/*.md", UnstructuredMarkdownLoader)
-    ]
-    
     documents = []
-    for glob_pattern, loader_cls in loaders:
-        try:
-            loader = DirectoryLoader(data_dir, glob=glob_pattern, loader_cls=loader_cls)
-            docs = loader.load()
-            print(f"Loaded {len(docs)} documents from {glob_pattern}")
-            if docs:
-                print("Sample files:")
-                for doc in docs[:3]:  # Show first 3 files
-                    print(f"- {doc.metadata.get('source', 'Unknown source')}")
-            documents.extend(docs)
-        except Exception as e:
-            print(f"Error loading {glob_pattern}: {str(e)}")
+    
+    # Walk through data directory
+    for root, _, files in os.walk(data_dir):
+        for file in files:
+            file_path = os.path.join(root, file)
+            try:
+                if file.lower().endswith('.txt'):
+                    loader = TextLoader(file_path)
+                    docs = loader.load()
+                elif file.lower().endswith('.pdf'):
+                    docs = process_pdf(file_path)
+                elif file.lower().endswith('.docx'):
+                    docs = process_word(file_path)
+                elif file.lower().endswith('.md'):
+                    docs = process_markdown(file_path)
+                else:
+                    print(f"Skipping unsupported file: {file}")
+                    continue
+                    
+                if docs:
+                    print(f"Loaded {len(docs)} chunks from {file}")
+                    documents.extend(docs)
+            except Exception as e:
+                print(f"Error loading {file}: {str(e)}")
     
     print(f"\nTotal documents loaded: {len(documents)}")
     
