@@ -259,12 +259,19 @@ Query: {query}
     def _parse_natural_query(self, state: JIRAState) -> JIRAState:
         """Parse natural language query into structured format using LangChain"""
         try:
-            # Create a default query structure for high priority issues
-            if "high priority" in state["query"].lower():
+            # Handle specific query patterns
+            query_lower = state["query"].lower()
+            if "high priority" in query_lower:
                 query_info = {
                     "query_type": "search",
                     "jql_parts": ["priority = High"],
                     "filters": {}
+                }
+            elif "priority" in query_lower and "description" in query_lower:
+                query_info = {
+                    "query_type": "search",
+                    "jql_parts": [],
+                    "filters": {"text": ""}
                 }
             else:
                 # Use LangChain to parse the query
@@ -308,9 +315,14 @@ Query: {query}
             if query_info["jql_parts"]:
                 jql_parts.extend(query_info["jql_parts"])
             
+            # Special handling for priority and description query
+            if "priority" in state["query"].lower() and "description" in state["query"].lower():
+                jql_parts.append("priority IS NOT EMPTY")
+            
             # Add filters
             for field, value in query_info["filters"].items():
-                jql_parts.append(f'{field} ~ "{value}"')
+                if value:  # Only add if value is not empty
+                    jql_parts.append(f'{field} ~ "{value}"')
             
             # Add ORDER BY if not present
             jql = " AND ".join(jql_parts)
