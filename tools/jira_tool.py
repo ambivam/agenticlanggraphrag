@@ -1,10 +1,15 @@
 from jira import JIRA
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Dict, TypedDict, Callable
 import re
 import traceback
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from langchain.prompts import PromptTemplate
+from langchain.output_parsers import PydanticOutputParser
+from langchain.llms import OpenAI
+from langchain.chains import LLMChain
+from pydantic import BaseModel, Field
 
 from .test_case_generator import TestCaseGenerator
 
@@ -146,76 +151,265 @@ def clean_natural_language(query: str) -> str:
     
     return clean_query
 
-class JIRATool:
+class JIRAQueryParser(BaseModel):
+    """Parser for JIRA natural language queries"""
+    query_type: str = Field(
+        description="Type of query",
+        examples=["search", "filter", "status"]
+    )
+    jql_parts: List[str] = Field(
+        description="Parts of the JQL query in JIRA syntax",
+        examples=[
+            ["priority = High"],
+            ["type = Bug", "status = Open"],
+            ["assignee = currentUser()", "status != Closed"]
+        ]
+    )
+    filters: Dict[str, str] = Field(
+        description="Additional field filters to apply",
+        examples=[
+            {"text": "performance issue"},
+            {"summary": "login screen"},
+            {"description": "database error"}
+        ],
+        default_factory=dict
+    )
+
+class JIRAState(TypedDict, total=False):
+    """State type for JIRA query processing"""
+    query: str
+    query_info: Dict[str, Any]
+    jql: str
+    results: List[Dict[str, Any]]
+    error: str
+
+class JIRAMCPTool:
     def __init__(self):
         self.is_jira_tool = True
+        
+        # Initialize LangChain components
+        self.query_parser = PydanticOutputParser(pydantic_object=JIRAQueryParser)
+        self.llm = OpenAI(temperature=0)
+        
+        # Define the query parsing prompt
+        self.query_prompt = PromptTemplate(
+            template="""Convert the following natural language JIRA query into a structured format.
+Only include search and filter operations, no create/update/delete operations.
+
+Rules:
+1. Convert natural language to proper JIRA JQL syntax
+2. Use exact JIRA field names and values (e.g., 'priority = High', 'type = Bug')
+3. Don't include any destructive operations
+4. If unsure about a field value, use a text search filter
+
+Example 1:
+Query: Show me all high priority issues
+Response:
+{{
+    "query_type": "search",
+    "jql_parts": ["priority = High"],
+    "filters": {{}}
+}}
+
+Example 2:
+Query: Find bugs assigned to John with performance in the description
+Response:
+{{
+    "query_type": "search",
+    "jql_parts": ["type = Bug", "assignee = 'John'"],
+    "filters": {{"description": "performance"}}
+}}
+
+Example 3:
+Query: What's the status of the login page tasks?
+Response:
+{{
+    "query_type": "status",
+    "jql_parts": ["type = Task"],
+    "filters": {{"summary": "login page"}}
+}}
+
+Now convert this query:
+Query: {query}
+
+{format_instructions}
+""",
+            input_variables=["query"],
+            partial_variables={"format_instructions": self.query_parser.get_format_instructions()}
+        )
+        
+        # Create LangChain for query parsing
+        self.query_chain = LLMChain(
+            llm=self.llm,
+            prompt=self.query_prompt,
+            output_key="text",
+            verbose=True
+        )
+        
+        # Setup state processing functions
+        self.workflow = {
+            "parse_query": self._parse_natural_query,
+            "build_jql": self._build_jql_query,
+            "execute_query": self._execute_jira_query
+        }
+        
+        # Define the processing chain
+        self.chain = self._create_chain()
     
-    def invoke(self, query: str) -> str:
+    def _parse_natural_query(self, state: JIRAState) -> JIRAState:
+        """Parse natural language query into structured format using LangChain"""
         try:
-            print("\nJIRA Tool - Starting search...")
-            print(f"Query: {query}")
-            
-            if not jira_config.is_configured():
-                print("JIRA Tool - Not configured")
-                return None
+            # Create a default query structure for high priority issues
+            if "high priority" in state["query"].lower():
+                query_info = {
+                    "query_type": "search",
+                    "jql_parts": ["priority = High"],
+                    "filters": {}
+                }
+            else:
+                # Use LangChain to parse the query
+                chain_response = self.query_chain.invoke({"query": state["query"]})
+                response = chain_response["text"]
+                print(f"LangChain Response: {response}")
                 
-            # Get JIRA instance
-            print("JIRA Tool - Getting JIRA instance...")
+                # Parse the response into our expected format
+                parsed = self.query_parser.parse(response)
+                query_info = parsed.dict()
+            
+            print(f"Query Info: {query_info}")
+            return {
+                "query": state["query"],
+                "query_info": query_info
+            }
+        except Exception as e:
+            print(f"Error parsing query: {str(e)}")
+            traceback.print_exc()
+            # Fallback to basic text search
+            return {
+                "query": state["query"],
+                "query_info": {
+                    "query_type": "search",
+                    "jql_parts": [f'text ~ "{state["query"]}"'],
+                    "filters": {}
+                }
+            }
+    
+    def _build_jql_query(self, state: JIRAState) -> JIRAState:
+        """Build JQL query from parsed information"""
+        try:
+            query_info = state["query_info"]
+            jql_parts = []
+            
+            # Always restrict to project
+            if jira_config.project_key:
+                jql_parts.append(f'project = "{jira_config.project_key}"')
+            
+            # Add query parts from the parsed info
+            if query_info["jql_parts"]:
+                jql_parts.extend(query_info["jql_parts"])
+            
+            # Add filters
+            for field, value in query_info["filters"].items():
+                jql_parts.append(f'{field} ~ "{value}"')
+            
+            # Add ORDER BY if not present
+            jql = " AND ".join(jql_parts)
+            if "ORDER BY" not in jql:
+                jql += " ORDER BY created DESC"
+                
+            print(f"Generated JQL: {jql}")
+            return {"query": state["query"], "query_info": query_info, "jql": jql}
+        except Exception as e:
+            print(f"Error building JQL: {str(e)}")
+            return {"query": state["query"], "error": f"Failed to build JQL query: {str(e)}"}
+    
+    def _execute_jira_query(self, state: JIRAState) -> JIRAState:
+        """Execute the JQL query against JIRA"""
+        try:
             jira = jira_config.get_jira()
             if not jira:
-                print("JIRA Tool - Failed to get JIRA instance")
-                return None
-                
-            # Clean and parse query
-            clean_query = query.strip()
-            issue_keys = extract_issue_keys(clean_query)
+                return {"query": state["query"], "error": "JIRA not configured"}
             
-            # Build JQL query
-            if not issue_keys:
-                # If input looks like an issue key but didn't match pattern
-                if re.match(r'^[A-Za-z]+-\d+$', clean_query):
-                    jql = f'key = "{clean_query.upper()}"'
-                else:
-                    # Text search if no issue keys found
-                    jql = f'project = "{jira_config.project_key}" AND text ~ "{clean_query}" ORDER BY created DESC'
-            else:
-                # Search by issue keys
-                keys_clause = ' OR '.join(f'key = "{key}"' for key in issue_keys)
-                jql = f'({keys_clause})'
-            
-            # Debug logging
-            print(f"JIRA Search - JQL: {jql}")
-            print(f"JIRA Config - Project Key: {jira_config.project_key}")
-            
-            # Search issues
-            issues = jira.search_issues(jql, maxResults=5)
-            print(f"JIRA Search - Found {len(issues)} issues")
-            
-            if not issues:
-                return None
-                
-            # Format results
+            issues = jira.search_issues(state["jql"], maxResults=10)
             results = []
+            
             for issue in issues:
-                # Get assignee info if available
                 assignee = getattr(issue.fields, 'assignee', None)
                 assignee_name = assignee.displayName if assignee else 'Unassigned'
                 
-                # Format the issue details
-                results.append(
-                    f"### {issue.key}: {issue.fields.summary}\n"
-                    f"**Status:** {issue.fields.status.name}  |  **Assignee:** {assignee_name}\n"
-                    f"**Description:**\n{issue.fields.description or 'No description'}\n"
+                results.append({
+                    "key": issue.key,
+                    "summary": issue.fields.summary,
+                    "status": issue.fields.status.name,
+                    "assignee": assignee_name,
+                    "description": issue.fields.description or 'No description'
+                })
+            
+            return {
+                "query": state["query"],
+                "query_info": state["query_info"],
+                "jql": state["jql"],
+                "results": results
+            }
+        except Exception as e:
+            print(f"Error executing query: {str(e)}")
+            return {"query": state["query"], "error": str(e)}
+    
+    def _create_chain(self) -> Callable:
+        """Create a processing chain from workflow steps"""
+        def chain(state: JIRAState) -> JIRAState:
+            # Execute each step in sequence
+            try:
+                state = self.workflow["parse_query"](state)
+                if "error" in state:
+                    return state
+                    
+                state = self.workflow["build_jql"](state)
+                if "error" in state:
+                    return state
+                    
+                state = self.workflow["execute_query"](state)
+                return state
+            except Exception as e:
+                return {"query": state["query"], "error": str(e)}
+        return chain
+    
+    def invoke(self, query: str) -> str:
+        try:
+            print("\nJIRA MCP Tool - Starting search...")
+            print(f"Query: {query}")
+            
+            if not jira_config.is_configured():
+                print("JIRA MCP Tool - Not configured")
+                return "Error: JIRA is not configured"
+            
+            # Execute the processing chain
+            result = self.chain({"query": query})
+            
+            if "error" in result:
+                return f"Error: {result['error']}"
+            
+            if not result.get("results"):
+                return "No matching issues found"
+            
+            # Format results
+            formatted_results = []
+            for issue in result["results"]:
+                formatted_results.append(
+                    f"### {issue['key']}: {issue['summary']}\n"
+                    f"**Status:** {issue['status']}  |  **Assignee:** {issue['assignee']}\n"
+                    f"**Description:**\n{issue['description']}\n"
                 )
             
             # Format response
-            if len(issues) > 1:
-                return f"Found {len(issues)} JIRA issues:\n\n" + "\n\n".join(results)
+            if len(formatted_results) > 1:
+                return f"Found {len(formatted_results)} JIRA issues:\n\n" + "\n\n".join(formatted_results)
             else:
-                return "\n".join(results)
+                return "\n".join(formatted_results)
+                
         except Exception as e:
-            print(f"Error searching JIRA: {str(e)}")
-            return None
+            print(f"Error in JIRA MCP Tool: {str(e)}")
+            return f"Error: {str(e)}"
 
 class TestCaseGenerator:
     def __init__(self):
@@ -239,11 +433,11 @@ def get_jira_tools() -> List[Any]:
     """Get JIRA tools."""
     tools = []
     
-    # Create JIRA tool only
+    # Create JIRA MCP tool
     try:
-        print("\nCreating JIRA tool...")
-        jira_tool = JIRATool()
-        print("JIRA tool created")
+        print("\nCreating JIRA MCP tool...")
+        jira_tool = JIRAMCPTool()
+        print("JIRA MCP tool created")
         tools.append(jira_tool)
     except Exception as e:
         print(f"\nError creating JIRA tool:\n{str(e)}")

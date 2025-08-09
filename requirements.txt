@@ -1,7 +1,7 @@
-langchain
-langchain-community
-langchain-openai
-langgraph
+langchain>=0.1.0
+langchain-community>=0.0.10
+langchain-openai>=0.0.3
+langgraph>=0.0.10
 faiss-cpu
 openai
 streamlit
