@@ -102,6 +102,15 @@ class JiraConfig:
             print(f"JIRA Config - URL: {self.url}")
             print(f"JIRA Config - Username: {self.username}")
             print(f"JIRA Config - Project Key: {self.project_key}")
+            print(f"JIRA Config - API Token: {'*' * (len(self.api_token) if self.api_token else 0)}")
+            
+            if not all([self.url, self.username, self.api_token, self.project_key]):
+                print("JIRA Config - Missing required configuration:")
+                if not self.url: print("- Missing URL")
+                if not self.username: print("- Missing username")
+                if not self.api_token: print("- Missing API token")
+                if not self.project_key: print("- Missing project key")
+                return None
             
             options = {
                 'server': self.url
@@ -338,25 +347,33 @@ Query: {query}
     def _execute_jira_query(self, state: JIRAState) -> JIRAState:
         """Execute the JQL query against JIRA"""
         try:
+            print("\nExecuting JIRA query...")
             jira = jira_config.get_jira()
             if not jira:
+                print("JIRA not configured")
                 return {"query": state["query"], "error": "JIRA not configured"}
             
+            print(f"JQL Query: {state['jql']}")
             issues = jira.search_issues(state["jql"], maxResults=10)
-            results = []
+            print(f"Found {len(issues)} issues")
             
+            results = []
             for issue in issues:
+                print(f"Processing issue: {issue.key}")
                 assignee = getattr(issue.fields, 'assignee', None)
                 assignee_name = assignee.displayName if assignee else 'Unassigned'
                 
-                results.append({
+                issue_data = {
                     "key": issue.key,
                     "summary": issue.fields.summary,
                     "status": issue.fields.status.name,
                     "assignee": assignee_name,
                     "description": issue.fields.description or 'No description'
-                })
+                }
+                print(f"Issue data: {issue_data['key']} - {issue_data['summary']}")
+                results.append(issue_data)
             
+            print(f"Processed {len(results)} issues successfully")
             return {
                 "query": state["query"],
                 "query_info": state["query_info"],
@@ -365,6 +382,8 @@ Query: {query}
             }
         except Exception as e:
             print(f"Error executing query: {str(e)}")
+            import traceback
+            print(f"Traceback:\n{traceback.format_exc()})")
             return {"query": state["query"], "error": str(e)}
     
     def _create_chain(self) -> Callable:
@@ -398,11 +417,38 @@ Query: {query}
             # Execute the processing chain
             result = self.chain({"query": query})
             
+            print("\nJIRA Query Results:")
+            print(f"Result type: {type(result)}")
+            print(f"Result keys: {result.keys() if isinstance(result, dict) else 'Not a dict'}")
+            
             if "error" in result:
                 return f"Error: {result['error']}"
             
             if not result.get("results"):
+                print("No results found in query response")
                 return "No matching issues found"
+            
+            print(f"Number of JIRA results: {len(result['results'])}")
+            print("First result sample:")
+            if result['results']:
+                first_result = result['results'][0]
+                print(f"Keys in result: {first_result.keys()}")
+                print(f"Key: {first_result.get('key')}")
+                print(f"Summary: {first_result.get('summary')}")
+            
+            # Store results in FAISS
+            try:
+                print("\nAttempting to store in FAISS...")
+                from .jira_storage import JIRAStorage
+                storage = JIRAStorage()
+                print("Created storage instance")
+                num_stored = storage.store_jira_results(result["results"])
+                print(f"Successfully stored {num_stored} JIRA issues")
+            except Exception as e:
+                print(f"Error storing JIRA results: {str(e)}")
+                import traceback
+                print(f"Storage error traceback:\n{traceback.format_exc()}")
+                num_stored = 0
             
             # Format results
             formatted_results = []
@@ -414,10 +460,16 @@ Query: {query}
                 )
             
             # Format response
+            response = []
             if len(formatted_results) > 1:
-                return f"Found {len(formatted_results)} JIRA issues:\n\n" + "\n\n".join(formatted_results)
+                response.append(f"Found {len(formatted_results)} JIRA issues:\n\n" + "\n\n".join(formatted_results))
             else:
-                return "\n".join(formatted_results)
+                response.append("\n".join(formatted_results))
+                
+            # Add storage confirmation
+            response.append(f"\n\n> 💾 Stored {num_stored} JIRA issues in knowledge base for future reference.")
+            
+            return "\n".join(response)
                 
         except Exception as e:
             print(f"Error in JIRA MCP Tool: {str(e)}")
