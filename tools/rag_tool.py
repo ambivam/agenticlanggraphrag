@@ -89,12 +89,22 @@ def get_rag_chain():
         retriever = db.as_retriever(
             search_type="mmr",  # Use MMR for diversity
             search_kwargs={
-                "k": 3,  # Reduced number of documents to retrieve
-                "lambda_mult": 0.7,  # MMR diversity factor (0=max diversity, 1=max relevance)
-                "fetch_k": 5,  # Fetch more docs then select k most diverse
-                "score_threshold": 0.7,  # Increased similarity threshold for better relevance
+                "k": 5,  # Retrieve more documents
+                "lambda_mult": 0.5,  # Balanced diversity and relevance
+                "fetch_k": 10,  # Fetch more docs for better diversity
+                "score_threshold": 0.3,  # Lower threshold to catch more matches
             }
         )
+        # retriever = db.as_retriever(
+        #     search_type="mmr",  # Use MMR for diversity
+        #     search_kwargs={
+        #         "k": 3,  # Reduced number of documents to retrieve
+        #         "lambda_mult": 0.7,  # MMR diversity factor (0=max diversity, 1=max relevance)
+        #         "fetch_k": 5,  # Fetch more docs then select k most diverse
+        #         "score_threshold": 0.7,  # Increased similarity threshold for better relevance
+        #     }
+        # )
+
         
         print("Creating RAG chain...")
         chain = RetrievalQA.from_chain_type(

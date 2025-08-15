@@ -5,8 +5,8 @@ class ModuleManager:
         # Initialize session state if not exists
         if 'modules' not in st.session_state:
             st.session_state.modules = {
-                'rag': False,
-                'sql': False,
+                'rag': True,
+                'sql': True,
                 'search': False,
                 'jira': False,
                 's3': False
