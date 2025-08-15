@@ -86,13 +86,21 @@ def get_rag_chain():
             print(f"Error inspecting index: {str(e)}")
         
         print("\nCreating retriever...")
+        # Configure text splitter for chunking
+        from langchain.text_splitter import RecursiveCharacterTextSplitter
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=100,
+            separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""]
+        )
+        
         retriever = db.as_retriever(
             search_type="mmr",  # Use MMR for diversity
             search_kwargs={
-                "k": 5,  # Retrieve more documents
-                "lambda_mult": 0.5,  # Balanced diversity and relevance
-                "fetch_k": 10,  # Fetch more docs for better diversity
-                "score_threshold": 0.3,  # Lower threshold to catch more matches
+                "k": 3,  # Limit number of documents
+                "lambda_mult": 0.7,  # Prioritize relevance
+                "fetch_k": 5,  # Fetch fewer docs
+                "score_threshold": 0.3,  # Keep lower threshold for recall
             }
         )
         # retriever = db.as_retriever(
@@ -125,12 +133,18 @@ def get_rag_chain():
         chain = RetrievalQA.from_chain_type(
             llm=ChatOpenAI(
                 temperature=0.7,
-                model="gpt-4"  # Use GPT-4 for better comprehension
+                model="gpt-4-turbo-preview",  # Use GPT-4-turbo for larger context
+                max_tokens=4000  # Limit response length
             ),
             chain_type="stuff",  # Use stuff chain type for better context integration
             retriever=retriever,
             chain_type_kwargs={
-                "prompt": custom_prompt
+                "prompt": custom_prompt,
+                "document_prompt": PromptTemplate(
+                    template="{page_content}",
+                    input_variables=["page_content"]
+                ),
+                "document_separator": "\n\n"
             },
             return_source_documents=True,
             verbose=True  # Add verbose output for debugging
