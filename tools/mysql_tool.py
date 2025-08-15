@@ -123,7 +123,7 @@ def get_mysql_agent():
         db = SQLDatabase.from_uri(db_uri)
         
         # Create LLM with custom prompt
-        base_llm = ChatOpenAI(temperature=0)
+        base_llm = ChatOpenAI(model="gpt-4-turbo-preview", temperature=0)
         
         # Custom prompt template that emphasizes returning all results
         custom_prompt = PromptTemplate(
