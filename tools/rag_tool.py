@@ -107,13 +107,31 @@ def get_rag_chain():
 
         
         print("Creating RAG chain...")
+        # Custom prompt template for SQL queries
+        from langchain.prompts import PromptTemplate
+        custom_prompt = PromptTemplate(
+            template="""You are a helpful assistant that provides information about SQL database contents.
+            If the retrieved documents contain database query results, format them clearly.
+            If you see table contents, list them in a clear, readable format.
+            
+            Question: {question}
+            
+            Context: {context}
+            
+            Answer: Let me help you with that information.""",
+            input_variables=["context", "question"]
+        )
+        
         chain = RetrievalQA.from_chain_type(
             llm=ChatOpenAI(
                 temperature=0.7,
                 model="gpt-4"  # Use GPT-4 for better comprehension
             ),
-            chain_type="map_reduce",  # Use map_reduce for handling more content
+            chain_type="stuff",  # Use stuff chain type for better context integration
             retriever=retriever,
+            chain_type_kwargs={
+                "prompt": custom_prompt
+            },
             return_source_documents=True,
             verbose=True  # Add verbose output for debugging
         )
