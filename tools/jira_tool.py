@@ -342,7 +342,7 @@ Query: {query}
             if not jira:
                 return {"query": state["query"], "error": "JIRA not configured"}
             
-            issues = jira.search_issues(state["jql"], maxResults=10)
+            issues = jira.search_issues(state["jql"], maxResults=100)
             results = []
             
             for issue in issues:
