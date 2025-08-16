@@ -1,11 +1,19 @@
 from jira import JIRA
-from typing import Optional, List, Any, Dict, TypedDict, Callable
-import re
-import traceback
+from typing import TypedDict, Optional, List, Dict, Any, Callable
+from datetime import datetime
+from jira import JIRA
 import os
+import json
+import traceback
 from pathlib import Path
 from dotenv import load_dotenv
+
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
+from langchain_community.vectorstores import FAISS
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.docstore.document import Document
 from langchain.output_parsers import PydanticOutputParser
 from langchain.llms import OpenAI
 from langchain.chains import LLMChain
@@ -158,12 +166,13 @@ class JIRAQueryParser(BaseModel):
         examples=["search", "filter", "status"]
     )
     jql_parts: List[str] = Field(
-        description="Parts of the JQL query in JIRA syntax",
+        description="JQL query parts",
         examples=[
-            ["priority = High"],
-            ["type = Bug", "status = Open"],
-            ["assignee = currentUser()", "status != Closed"]
-        ]
+            "priority = High",
+            "type = Bug",
+            "assignee = 'John'"
+        ],
+        default_factory=list
     )
     filters: Dict[str, str] = Field(
         description="Additional field filters to apply",
@@ -186,50 +195,34 @@ class JIRAState(TypedDict, total=False):
 class JIRAMCPTool:
     def __init__(self):
         self.is_jira_tool = True
+        self.llm = ChatOpenAI(
+            temperature=0.7,
+            model="gpt-4-turbo-preview"
+        )
+        self.embeddings = OpenAIEmbeddings()
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=100,
+            separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""]
+        )
         
-        # Initialize LangChain components
+        # Ensure FAISS directory exists
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.faiss_dir = os.path.join(base_dir, "faiss_index")
+        os.makedirs(self.faiss_dir, exist_ok=True)
+        
+        # Setup LangChain query parsing
         self.query_parser = PydanticOutputParser(pydantic_object=JIRAQueryParser)
-        self.llm = OpenAI(temperature=0)
-        
-        # Define the query parsing prompt
         self.query_prompt = PromptTemplate(
             template="""Convert the following natural language JIRA query into a structured format.
 Only include search and filter operations, no create/update/delete operations.
 
 Rules:
 1. Convert natural language to proper JIRA JQL syntax
-2. Use exact JIRA field names and values (e.g., 'priority = High', 'type = Bug')
-3. Don't include any destructive operations
-4. If unsure about a field value, use a text search filter
+2. Extract any text search terms
+3. Identify filters like priority, status, type
+4. Handle special cases like 'all bugs', 'high priority issues'
 
-Example 1:
-Query: Show me all high priority issues
-Response:
-{{
-    "query_type": "search",
-    "jql_parts": ["priority = High"],
-    "filters": {{}}
-}}
-
-Example 2:
-Query: Find bugs assigned to John with performance in the description
-Response:
-{{
-    "query_type": "search",
-    "jql_parts": ["type = Bug", "assignee = 'John'"],
-    "filters": {{"description": "performance"}}
-}}
-
-Example 3:
-Query: What's the status of the login page tasks?
-Response:
-{{
-    "query_type": "status",
-    "jql_parts": ["type = Task"],
-    "filters": {{"summary": "login page"}}
-}}
-
-Now convert this query:
 Query: {query}
 
 {format_instructions}
@@ -237,12 +230,10 @@ Query: {query}
             input_variables=["query"],
             partial_variables={"format_instructions": self.query_parser.get_format_instructions()}
         )
-        
-        # Create LangChain for query parsing
         self.query_chain = LLMChain(
             llm=self.llm,
             prompt=self.query_prompt,
-            output_key="text",
+            output_parser=self.query_parser,
             verbose=True
         )
         
@@ -259,29 +250,41 @@ Query: {query}
     def _parse_natural_query(self, state: JIRAState) -> JIRAState:
         """Parse natural language query into structured format using LangChain"""
         try:
-            # Handle specific query patterns
-            query_lower = state["query"].lower()
-            if "high priority" in query_lower:
+            # Check if query is a direct issue key
+            query = state["query"]
+            if query.upper().startswith("ES-") and query[3:].isdigit():
+                query_info = {
+                    "query_type": "issue",
+                    "jql_parts": [f'issuekey = {query.upper()}'],
+                    "filters": {}
+                }
+            # Handle common patterns
+            elif "high priority" in query.lower():
                 query_info = {
                     "query_type": "search",
                     "jql_parts": ["priority = High"],
                     "filters": {}
                 }
-            elif "priority" in query_lower and "description" in query_lower:
+            elif "bugs" in query.lower() or "bug" in query.lower():
                 query_info = {
                     "query_type": "search",
-                    "jql_parts": [],
-                    "filters": {"text": ""}
+                    "jql_parts": ["type = Bug"],
+                    "filters": {}
                 }
             else:
-                # Use LangChain to parse the query
-                chain_response = self.query_chain.invoke({"query": state["query"]})
-                response = chain_response["text"]
-                print(f"LangChain Response: {response}")
-                
-                # Parse the response into our expected format
-                parsed = self.query_parser.parse(response)
-                query_info = parsed.dict()
+                # Use LangChain parsing for complex queries
+                query_result = self.query_chain.run(query=query)
+                query_info = {
+                    "query_type": query_result.query_type,
+                    "jql_parts": query_result.jql_parts,
+                    "filters": query_result.filters
+                }
+            
+            print(f"Query Info: {query_info}")
+            return {
+                "query": state["query"],
+                "query_info": query_info
+            }
             
             print(f"Query Info: {query_info}")
             return {
@@ -311,51 +314,67 @@ Query: {query}
             if jira_config.project_key:
                 jql_parts.append(f'project = "{jira_config.project_key}"')
             
-            # Add query parts from the parsed info
+            # Add any JQL parts from query info
             if query_info["jql_parts"]:
                 jql_parts.extend(query_info["jql_parts"])
             
-            # Special handling for priority and description query
-            if "priority" in state["query"].lower() and "description" in state["query"].lower():
-                jql_parts.append("priority IS NOT EMPTY")
+            # Add text search if specified
+            if "text" in query_info["filters"]:
+                jql_parts.append(f'text ~ "{query_info["filters"]["text"]}"')
             
-            # Add filters
-            for field, value in query_info["filters"].items():
-                if value:  # Only add if value is not empty
-                    jql_parts.append(f'{field} ~ "{value}"')
+            # Build final JQL
+            jql = " AND ".join(jql_parts) if jql_parts else ""
+            print(f"JQL: {jql}")
             
-            # Add ORDER BY if not present
-            jql = " AND ".join(jql_parts)
-            if "ORDER BY" not in jql:
-                jql += " ORDER BY created DESC"
-                
-            print(f"Generated JQL: {jql}")
-            return {"query": state["query"], "query_info": query_info, "jql": jql}
+            return {
+                "query": state["query"],
+                "query_info": query_info,
+                "jql": jql
+            }
+            
         except Exception as e:
             print(f"Error building JQL: {str(e)}")
             return {"query": state["query"], "error": f"Failed to build JQL query: {str(e)}"}
     
     def _execute_jira_query(self, state: JIRAState) -> JIRAState:
-        """Execute the JQL query against JIRA"""
+        """Execute JQL query and format results"""
         try:
             jira = jira_config.get_jira()
             if not jira:
-                return {"query": state["query"], "error": "JIRA not configured"}
+                return {"query": state["query"], "error": "JIRA is not configured"}
             
-            issues = jira.search_issues(state["jql"], maxResults=100)
+            print(f"Executing JQL: {state['jql']}")
+            
+            # For direct issue lookup, use issue() method
+            if state["query_info"]["query_type"] == "issue":
+                issue_key = state["query"].upper()
+                try:
+                    issue = jira.issue(issue_key)
+                    issues = [issue]
+                except Exception as e:
+                    print(f"Issue not found: {issue_key}")
+                    return {"query": state["query"], "error": f"Issue {issue_key} not found"}
+            else:
+                # For searches, use search_issues()
+                issues = jira.search_issues(
+                    state["jql"] or "project = \"" + jira_config.project_key + "\"",
+                    maxResults=10
+                )
+            
             results = []
-            
             for issue in issues:
-                assignee = getattr(issue.fields, 'assignee', None)
-                assignee_name = assignee.displayName if assignee else 'Unassigned'
-                
-                results.append({
+                issue_dict = {
                     "key": issue.key,
                     "summary": issue.fields.summary,
-                    "status": issue.fields.status.name,
-                    "assignee": assignee_name,
-                    "description": issue.fields.description or 'No description'
-                })
+                    "status": str(issue.fields.status),
+                    "created": str(issue.fields.created),
+                    "updated": str(issue.fields.updated),
+                    "description": issue.fields.description or ""
+                }
+                results.append(issue_dict)
+                
+                # Store in FAISS
+                self._store_in_faiss(issue_dict)
             
             return {
                 "query": state["query"],
@@ -363,9 +382,54 @@ Query: {query}
                 "jql": state["jql"],
                 "results": results
             }
+            
         except Exception as e:
             print(f"Error executing query: {str(e)}")
-            return {"query": state["query"], "error": str(e)}
+            traceback.print_exc()
+            return {"query": state["query"], "error": f"Failed to execute query: {str(e)}"}
+            
+    def _store_in_faiss(self, issue_dict):
+        """Store JIRA issue in FAISS index."""
+        try:
+            # Create content string
+            content = f"JIRA Issue {issue_dict['key']}\n\n"
+            content += f"Summary: {issue_dict['summary']}\n"
+            content += f"Description: {issue_dict['description']}\n"
+            content += f"Status: {issue_dict['status']}\n"
+            content += f"Created: {issue_dict['created']}\n"
+            content += f"Updated: {issue_dict['updated']}"
+            
+            # Create document
+            doc = Document(
+                page_content=content,
+                metadata={
+                    "source": "jira_issue",
+                    "issue_key": issue_dict['key'],
+                    "timestamp": datetime.now().timestamp()
+                }
+            )
+            
+            # Split into chunks
+            chunks = self.text_splitter.split_documents([doc])
+            
+            # Load existing index if it exists
+            index_path = os.path.join(self.faiss_dir, "index.faiss")
+            if os.path.exists(index_path):
+                db = FAISS.load_local(self.faiss_dir, self.embeddings, allow_dangerous_deserialization=True)
+                # Add new chunks to existing index
+                db.add_documents(chunks)
+            else:
+                # Create new index
+                db = FAISS.from_documents(chunks, self.embeddings)
+            
+            # Save updated index
+            db.save_local(self.faiss_dir)
+            print(f"Stored {len(chunks)} chunks in FAISS for issue {issue_dict['key']}")
+            
+        except Exception as e:
+            print(f"Error storing in FAISS: {str(e)}")
+            import traceback
+            print(f"Traceback:\n{traceback.format_exc()}")
     
     def _create_chain(self) -> Callable:
         """Create a processing chain from workflow steps"""
@@ -409,7 +473,9 @@ Query: {query}
             for issue in result["results"]:
                 formatted_results.append(
                     f"### {issue['key']}: {issue['summary']}\n"
-                    f"**Status:** {issue['status']}  |  **Assignee:** {issue['assignee']}\n"
+                    f"**Status:** {issue['status']}\n"
+                    f"**Created:** {issue['created']}\n"
+                    f"**Updated:** {issue['updated']}\n"
                     f"**Description:**\n{issue['description']}\n"
                 )
             
