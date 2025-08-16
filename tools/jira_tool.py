@@ -391,32 +391,42 @@ Query: {query}
     def _store_in_faiss(self, issue_dict):
         """Store JIRA issue in FAISS index."""
         try:
-            # Create content string
-            content = f"JIRA Issue {issue_dict['key']}\n\n"
-            content += f"Summary: {issue_dict['summary']}\n"
-            content += f"Description: {issue_dict['description']}\n"
-            content += f"Status: {issue_dict['status']}\n"
-            content += f"Created: {issue_dict['created']}\n"
-            content += f"Updated: {issue_dict['updated']}"
+            # Create document for vectorization
+            content = f"JIRA Issue {issue_dict['key']}:\n" \
+                     f"Summary: {issue_dict['summary']}\n" \
+                     f"Status: {issue_dict['status']}\n" \
+                     f"Created: {issue_dict['created']}\n" \
+                     f"Updated: {issue_dict['updated']}\n" \
+                     f"Description: {issue_dict['description']}"
             
-            # Create document
+            # Create document with metadata
             doc = Document(
                 page_content=content,
                 metadata={
-                    "source": "jira_issue",
-                    "issue_key": issue_dict['key'],
-                    "timestamp": datetime.now().timestamp()
+                    "key": issue_dict['key'],
+                    "summary": issue_dict['summary'],
+                    "status": issue_dict['status'],
+                    "created": issue_dict['created'],
+                    "updated": issue_dict['updated'],
+                    "description": issue_dict['description']
                 }
             )
             
-            # Split into chunks
+            # Create chunks with metadata preserved
             chunks = self.text_splitter.split_documents([doc])
             
             # Load existing index if it exists
-            index_path = os.path.join(self.faiss_dir, "index.faiss")
-            if os.path.exists(index_path):
+            if os.path.exists(self.faiss_dir):
+                print(f"Loading existing FAISS index from {self.faiss_dir}")
                 db = FAISS.load_local(self.faiss_dir, self.embeddings, allow_dangerous_deserialization=True)
-                # Add new chunks to existing index
+                
+                # Check if issue already exists and remove old chunks
+                existing_docs = db.similarity_search(f"key:{issue_dict['key']}", k=10)
+                if existing_docs:
+                    print(f"Removing existing chunks for issue {issue_dict['key']}")
+                    db._index = None  # Force reindex
+                
+                # Add new chunks
                 db.add_documents(chunks)
             else:
                 # Create new index
@@ -454,6 +464,26 @@ Query: {query}
         try:
             print("\nJIRA MCP Tool - Starting search...")
             print(f"Query: {query}")
+            
+            # Check if this is a direct issue lookup
+            if query.upper().startswith("ES-"):
+                issue_key = query.upper()
+                # Try FAISS first
+                try:
+                    if os.path.exists(self.faiss_dir):
+                        db = FAISS.load_local(self.faiss_dir, self.embeddings, allow_dangerous_deserialization=True)
+                        docs = db.similarity_search(f"key:{issue_key}", k=1)
+                        if docs and docs[0].metadata.get('key') == issue_key:
+                            issue = docs[0].metadata
+                            return (
+                                f"### {issue['key']}: {issue['summary']}\n"
+                                f"**Status:** {issue['status']}\n"
+                                f"**Created:** {issue['created']}\n"
+                                f"**Updated:** {issue['updated']}\n"
+                                f"**Description:**\n{issue['description']}"
+                            )
+                except Exception as e:
+                    print(f"FAISS lookup failed: {str(e)}")
             
             if not jira_config.is_configured():
                 print("JIRA MCP Tool - Not configured")

@@ -90,17 +90,17 @@ def get_rag_chain():
         from langchain.text_splitter import RecursiveCharacterTextSplitter
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
-            chunk_overlap=100,
-            separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""]
+            chunk_overlap=200,  # More overlap for better context
+            separators=["\n\n", "\n", "### ", "**", ".", "!", "?", ",", " ", ""]
         )
         
         retriever = db.as_retriever(
             search_type="mmr",  # Use MMR for diversity
             search_kwargs={
-                "k": 3,  # Limit number of documents
-                "lambda_mult": 0.7,  # Prioritize relevance
-                "fetch_k": 5,  # Fetch fewer docs
-                "score_threshold": 0.3,  # Keep lower threshold for recall
+                "k": 5,  # Increased number of documents
+                "lambda_mult": 0.8,  # Higher relevance weight
+                "fetch_k": 10,  # Fetch more docs for better selection
+                "score_threshold": 0.1,  # Lower threshold to catch more matches
             }
         )
         # retriever = db.as_retriever(
@@ -115,12 +115,18 @@ def get_rag_chain():
 
         
         print("Creating RAG chain...")
-        # Custom prompt template for SQL queries
+        # Custom prompt template for JIRA and SQL content
         from langchain.prompts import PromptTemplate
         custom_prompt = PromptTemplate(
-            template="""You are a helpful assistant that provides information about SQL database contents.
-            If the retrieved documents contain database query results, format them clearly.
-            If you see table contents, list them in a clear, readable format.
+            template="""You are a helpful assistant that provides information about JIRA issues and SQL database contents.
+            For JIRA issues:
+            - Format issue details clearly with key, summary, status, and description
+            - Include relevant dates and metadata
+            - If multiple issues are found, summarize the common themes
+            
+            For SQL results:
+            - Format query results in a clear, tabular format
+            - Explain any relevant relationships or patterns
             
             Question: {question}
             
