@@ -3,7 +3,9 @@ import os
 from langgraph_mcp_bot import app
 from module_manager import ModuleManager
 from tools.s3_tool import ListBucketsTool
+from tools.file_upload import update_faiss_index
 from typing import Dict, Any
+import tempfile
 
 # Initialize session state
 if 'messages' not in st.session_state:
@@ -38,6 +40,46 @@ for module_id, module_name in modules.items():
     else:
         st.session_state.module_manager.disable_module(module_id)
         
+# File Upload section if RAG is enabled
+if st.session_state.module_manager.is_enabled('rag'):
+    st.sidebar.markdown("---")
+    st.sidebar.header("📁 Upload Files")
+    
+    uploaded_files = st.sidebar.file_uploader(
+        "Upload documents",
+        accept_multiple_files=True,
+        type=['pdf', 'txt']
+    )
+    
+    if uploaded_files:
+        if st.sidebar.button("📥 Process Files"):
+            with st.spinner("Processing files..."):
+                # Save uploaded files temporarily
+                temp_paths = []
+                for uploaded_file in uploaded_files:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(uploaded_file.name)[1]) as tmp_file:
+                        tmp_file.write(uploaded_file.getvalue())
+                        temp_paths.append(tmp_file.name)
+                
+                try:
+                    # Update FAISS index
+                    num_chunks, message = update_faiss_index(temp_paths)
+                    if num_chunks > 0:
+                        st.sidebar.success("✅ Files processed successfully!")
+                        st.sidebar.info(f"📊 Added {num_chunks} chunks to knowledge base")
+                    else:
+                        st.sidebar.error("❌ No content could be processed")
+                        st.sidebar.error(message)
+                except Exception as e:
+                    st.sidebar.error(f"❌ Error processing files: {str(e)}")
+                finally:
+                    # Cleanup temp files
+                    for temp_path in temp_paths:
+                        try:
+                            os.unlink(temp_path)
+                        except:
+                            pass
+
 # Show S3 bucket selection if S3 is enabled
 if st.session_state.module_manager.is_enabled('s3'):
     st.sidebar.markdown("---")
