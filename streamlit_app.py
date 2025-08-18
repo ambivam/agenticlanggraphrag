@@ -39,46 +39,124 @@ for module_id, module_name in modules.items():
         st.session_state.module_manager.enable_module(module_id)
     else:
         st.session_state.module_manager.disable_module(module_id)
-        
+
+def handle_file_upload():
+    """Handle file upload in the sidebar with chunked processing for large files."""
+    uploaded_file = st.sidebar.file_uploader(
+        "Upload a file to include in RAG context (up to 20MB)",
+        type=["txt", "md", "rst", "docx"]
+    )
+    
+    if uploaded_file:
+        try:
+            # Get file size
+            file_size = len(uploaded_file.getvalue())
+            size_mb = file_size / (1024 * 1024)
+            
+            if size_mb > 20:
+                st.sidebar.error(f"File too large: {size_mb:.1f}MB. Maximum size is 20MB")
+                return
+            
+            # Create status containers
+            status_container = st.sidebar.empty()
+            progress_container = st.sidebar.empty()
+            chunk_status = st.sidebar.empty()
+            
+            try:
+                # Phase 1: Process content
+                status_container.info("📝 Phase 1/2: Reading file...")
+                
+                # Extract text based on file type
+                if uploaded_file.name.endswith('.docx'):
+                    from docx import Document
+                    import io
+                    doc = Document(io.BytesIO(uploaded_file.getvalue()))
+                    content = "\n".join([paragraph.text for paragraph in doc.paragraphs])
+                else:
+                    content = uploaded_file.getvalue().decode('utf-8', errors='ignore')
+                
+                status_container.success(f"✅ Read {uploaded_file.name} ({size_mb:.1f}MB)")
+                
+                # Phase 2: Process for RAG
+                status_container.info("🔄 Phase 2/2: Processing for RAG...")
+                
+                # Create processing spinner
+                with st.spinner("Processing document..."):
+                    # Import here to avoid circular imports
+                    from tools.rag_tool import RAGTool
+                    from langchain.text_splitter import RecursiveCharacterTextSplitter
+                    from langchain_openai import OpenAIEmbeddings
+                    from langchain_community.vectorstores import FAISS
+                    from langchain.schema import Document
+                    
+                    # Split into chunks
+                    text_splitter = RecursiveCharacterTextSplitter(
+                        chunk_size=500,  # Increased chunk size
+                        chunk_overlap=50,  # Increased overlap
+                        length_function=len,
+                        separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""]
+                    )
+                    
+                    chunks = text_splitter.split_text(content)
+                    chunk_status.text(f"Created {len(chunks)} chunks")
+                    
+                    # Process in larger batches
+                    embeddings = OpenAIEmbeddings()
+                    batch_size = 20  # Increased batch size
+                    db = None
+                    
+                    # Estimate tokens per chunk
+                    avg_tokens_per_chunk = sum(len(chunk.split()) for chunk in chunks[:min(10, len(chunks))]) / min(10, len(chunks))
+                    max_tokens = 250000  # OpenAI's limit is 300k, stay under it
+                    safe_batch_size = min(batch_size, int(max_tokens / (avg_tokens_per_chunk * 4)))  # 4 tokens per word estimate
+                    
+                    for i in range(0, len(chunks), safe_batch_size):
+                        batch = chunks[i:i + safe_batch_size]
+                        docs = [Document(page_content=chunk) for chunk in batch]
+                        
+                        try:
+                            # Create or update index
+                            if db is None:
+                                db = FAISS.from_documents(docs, embeddings)
+                            else:
+                                db.add_documents(docs)
+                            
+                            # Save after each batch
+                            db.save_local("faiss_index")
+                            
+                            # Update progress
+                            progress = (i + len(batch)) / len(chunks)
+                            progress_container.progress(progress)
+                            chunk_status.text(f"Processing chunks: {i + len(batch)}/{len(chunks)}")
+                            
+                        except Exception as e:
+                            st.sidebar.error(f"Error processing batch: {e}")
+                            continue
+                    
+                    if db:
+                        st.sidebar.success("✅ Document processed and added to knowledge base")
+                        if "rag_chain" in st.session_state:
+                            st.session_state["rag_chain"] = None
+                    else:
+                        st.sidebar.error("❌ Error processing document")
+                
+            finally:
+                # Clear status indicators
+                status_container.empty()
+                progress_container.empty()
+                chunk_status.empty()
+            
+        except Exception as e:
+            st.sidebar.error(f"Error processing file: {str(e)}")
+            import traceback
+            st.sidebar.error(f"Details:\n{traceback.format_exc()}")            
+
 # File Upload section if RAG is enabled
 if st.session_state.module_manager.is_enabled('rag'):
     st.sidebar.markdown("---")
     st.sidebar.header("📁 Upload Files")
     
-    uploaded_files = st.sidebar.file_uploader(
-        "Upload documents",
-        accept_multiple_files=True,
-        type=['pdf', 'txt']
-    )
-    
-    if uploaded_files:
-        if st.sidebar.button("📥 Process Files"):
-            with st.spinner("Processing files..."):
-                # Save uploaded files temporarily
-                temp_paths = []
-                for uploaded_file in uploaded_files:
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(uploaded_file.name)[1]) as tmp_file:
-                        tmp_file.write(uploaded_file.getvalue())
-                        temp_paths.append(tmp_file.name)
-                
-                try:
-                    # Update FAISS index
-                    num_chunks, message = update_faiss_index(temp_paths)
-                    if num_chunks > 0:
-                        st.sidebar.success("✅ Files processed successfully!")
-                        st.sidebar.info(f"📊 Added {num_chunks} chunks to knowledge base")
-                    else:
-                        st.sidebar.error("❌ No content could be processed")
-                        st.sidebar.error(message)
-                except Exception as e:
-                    st.sidebar.error(f"❌ Error processing files: {str(e)}")
-                finally:
-                    # Cleanup temp files
-                    for temp_path in temp_paths:
-                        try:
-                            os.unlink(temp_path)
-                        except:
-                            pass
+    handle_file_upload()
 
 # Show S3 bucket selection if S3 is enabled
 if st.session_state.module_manager.is_enabled('s3'):

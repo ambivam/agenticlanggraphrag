@@ -45,6 +45,24 @@ class RAGTool:
             print(f"Traceback:\n{traceback.format_exc()}")
             return None
 
+def _build_or_load_faiss_index():
+    """Load FAISS index if it exists."""
+    print("\nLoading FAISS index...")
+    
+    try:
+        # Try to load existing index
+        if os.path.exists("faiss_index"):
+            print("Loading existing FAISS index...")
+            db = FAISS.load_local("faiss_index", OpenAIEmbeddings(), allow_dangerous_deserialization=True)
+            print("FAISS index loaded successfully")
+            return db
+        else:
+            print("No existing index found, creating new one...")
+            return None
+    except Exception as e:
+        print(f"Error loading FAISS index: {e}")
+        return None
+
 def get_rag_chain():
     """Get the RAG chain."""
     try:
