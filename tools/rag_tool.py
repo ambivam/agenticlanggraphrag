@@ -4,29 +4,114 @@ from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain.chains import RetrievalQA
 
 class RAGTool:
+    def _build_context(self, current_query):
+        """Build context from conversation history."""
+        context = []
+        for message in self.conversation_history:
+            role = message.get("role", "")
+            content = message.get("content", "")
+            if role and content:
+                context.append(f"{role.title()}: {content}")
+        return "\n".join(context)
+        
     def __init__(self, chain):
         self.chain = chain
         self.is_rag_tool = True
+        self.conversation_history = []
     
-    def invoke(self, input_text):
+    def invoke(self, input_text, thread_id=None):
         try:
             print(f"\nRAG Tool - Processing query: {input_text}")
             
-            # Get raw similarity search results first
+            # Get conversation history from memory store
+            from langgraph_mcp_bot import MemoryStore
+            
+            if thread_id:
+                self.conversation_history = MemoryStore.get_memory(thread_id)
+                # Add current query to memory
+                MemoryStore.add_memory(thread_id, {"role": "user", "content": input_text})
+            
+            # Build context from conversation history
+            context = self._build_context(input_text)
+            
+            # Debug: Print chain and retriever info
+            print("\nChain type:", type(self.chain))
+            print("Has retriever:", hasattr(self.chain, 'retriever'))
+            if hasattr(self.chain, 'retriever'):
+                print("Retriever type:", type(self.chain.retriever))
+                print("Has vectorstore:", hasattr(self.chain.retriever, 'vectorstore'))
+            
+            # Get raw similarity search results
             if hasattr(self.chain, 'retriever') and hasattr(self.chain.retriever, 'vectorstore'):
                 print("\nPerforming similarity search...")
-                similar_docs = self.chain.retriever.vectorstore.similarity_search_with_score(
-                    input_text,
-                    k=5
-                )
-                print("\nSimilarity search results:")
-                for i, (doc, score) in enumerate(similar_docs, 1):
-                    print(f"\nResult {i} (similarity score: {score:.4f}):")
-                    print(f"Content preview: {doc.page_content[:200]}...")
-                    print(f"Metadata: {doc.metadata}")
+                try:
+                    similar_docs = self.chain.retriever.vectorstore.similarity_search_with_score(
+                        input_text,
+                        k=5
+                    )
+                    print("\nSimilarity search results:")
+                    for i, (doc, score) in enumerate(similar_docs, 1):
+                        print(f"\nResult {i} (similarity score: {score:.4f}):")
+                        print(f"Content preview: {doc.page_content[:200]}...")
+                        print(f"Metadata: {doc.metadata}")
+                except Exception as e:
+                    print(f"Error in similarity search: {str(e)}")
+                    import traceback
+                    print(f"Traceback:\n{traceback.format_exc()}")
             
-            # Now invoke the chain
-            result = self.chain.invoke(input_text)
+            # Format chat history for chain input
+            chat_history = [("Human", msg["content"]) if msg["role"] == "user" 
+                           else ("Assistant", msg["content"]) 
+                           for msg in self.conversation_history]
+            
+            # Debug chain info
+            print("\nChain type:", type(self.chain))
+            print("Chain components:", dir(self.chain))
+            
+            try:
+                # Get raw similarity search results first
+                if hasattr(self.chain, 'retriever'):
+                    print("\nPerforming similarity search...")
+                    docs = self.chain.retriever.get_relevant_documents(input_text)
+                    print(f"Found {len(docs)} relevant documents")
+                    for i, doc in enumerate(docs):
+                        print(f"\nDocument {i+1}:")
+                        print(f"Content: {doc.page_content[:200]}...")
+                        print(f"Metadata: {doc.metadata}")
+                
+                # Invoke chain with formatted inputs
+                chain_response = self.chain({
+                    "question": input_text,
+                    "chat_history": chat_history
+                })
+                
+                print("\nRaw chain response:", chain_response)
+                
+                # Process and clean the response
+                result = {}
+                if isinstance(chain_response, dict):
+                    # Extract and clean the answer
+                    answer = chain_response.get('answer', '')
+                    if not answer and 'result' in chain_response:
+                        answer = chain_response['result']
+                    
+                    if answer:
+                        # Clean special characters and normalize whitespace
+                        answer = answer.replace('\xa0', ' ')
+                        answer = answer.replace('\x0b', '\n')
+                        answer = ' '.join(answer.split())
+                        result['result'] = answer
+                    
+                    # Process source documents
+                    if 'source_documents' in chain_response:
+                        result['source_documents'] = chain_response['source_documents'][:3]
+                else:
+                    result = {'result': str(chain_response)}
+            except Exception as e:
+                print(f"Error in chain execution: {str(e)}")
+                import traceback
+                print(f"Traceback:\n{traceback.format_exc()}")
+                result = {'error': str(e)}
             print(f"\nRAG Tool - Got result: {result}")
             
             # Extract source documents and scores
@@ -38,6 +123,10 @@ class RAGTool:
                     if hasattr(doc, 'metadata'):
                         print(f"Metadata: {doc.metadata}")
             
+            # Store assistant's response after getting it
+            if thread_id and hasattr(result, 'get'):
+                MemoryStore.add_memory(thread_id, {"role": "assistant", "content": str(result.get('result', ''))})
+                
             return result
         except Exception as e:
             print(f"\nError in RAG Tool invoke: {str(e)}")
@@ -51,109 +140,156 @@ def get_rag_chain():
         print("\n=== Creating RAG Chain ===")
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         faiss_dir = os.path.join(base_dir, "faiss_index")
+        data_dir = os.path.join(base_dir, "data")
         print(f"FAISS directory: {faiss_dir}")
+        print(f"Data directory: {data_dir}")
         
-        if not os.path.exists(faiss_dir):
-            print(f"Error: FAISS directory not found at {faiss_dir}")
-            return None
-            
-        index_path = os.path.join(faiss_dir, "index.faiss")
-        pkl_path = os.path.join(faiss_dir, "index.pkl")
-        
-        if not (os.path.exists(index_path) and os.path.exists(pkl_path)):
-            print(f"Error: Missing required files in {faiss_dir}")
-            print(f"index.faiss exists: {os.path.exists(index_path)}")
-            print(f"index.pkl exists: {os.path.exists(pkl_path)}")
-            return None
-        
-        print("Loading OpenAI embeddings...")
+        # Create embeddings
+        print("Creating embeddings...")
         embeddings = OpenAIEmbeddings()
         
-        print("Loading FAISS index...")
-        db = FAISS.load_local(faiss_dir, embeddings, allow_dangerous_deserialization=True)
+        # Load or create FAISS index
+        if os.path.exists(faiss_dir) and os.path.exists(os.path.join(faiss_dir, "index.faiss")):
+            print("Loading existing FAISS index...")
+            try:
+                db = FAISS.load_local(faiss_dir, embeddings, allow_dangerous_deserialization=True)
+                print("Loaded existing index successfully")
+            except Exception as e:
+                print(f"Error loading existing index: {str(e)}")
+                print("Will attempt to rebuild index")
+                db = None
+        else:
+            print("No existing index found")
+            db = None
+            
+        # If loading failed or no index exists, create new one
+        if db is None:
+            print("Creating new FAISS index...")
+            try:
+                # Load documents
+                from langchain.document_loaders import DirectoryLoader
+                from langchain.text_splitter import RecursiveCharacterTextSplitter
+                
+                # Load all supported file types
+                loader = DirectoryLoader(
+                    data_dir,
+                    glob="**/*.*",
+                    show_progress=True,
+                    use_multithreading=True
+                )
+                print("Loading documents...")
+                documents = loader.load()
+                print(f"Loaded {len(documents)} documents")
+                
+                # Split documents
+                text_splitter = RecursiveCharacterTextSplitter(
+                    chunk_size=1000,
+                    chunk_overlap=200
+                )
+                print("Splitting documents...")
+                texts = text_splitter.split_documents(documents)
+                print(f"Created {len(texts)} text chunks")
+                
+                # Create FAISS index
+                print("Creating new vectorstore...")
+                db = FAISS.from_documents(texts, embeddings)
+                
+                # Save index
+                print("Saving new index...")
+                os.makedirs(faiss_dir, exist_ok=True)
+                db.save_local(faiss_dir)
+                print("Saved new index successfully")
+            except Exception as e:
+                print(f"Error creating new index: {str(e)}")
+                import traceback
+                print(f"Traceback:\n{traceback.format_exc()}")
+                return None
         
-        # Debug: Print total documents in index
-        try:
-            doc_count = len(db.docstore._dict)
-            print(f"Total documents in FAISS index: {doc_count}")
-            print("\nSample document IDs and contents:")
-            for doc_id in list(db.docstore._dict.keys())[:3]:  # Show first 3 docs
-                doc = db.docstore._dict[doc_id]
-                print(f"\nDoc ID: {doc_id}")
-                print(f"Content preview: {doc.page_content[:200]}...")
-                print(f"Metadata: {doc.metadata}")
-        except Exception as e:
-            print(f"Error inspecting index: {str(e)}")
+        # If we have a valid db, print stats
+        if db is not None:
+            try:
+                doc_count = len(db.docstore._dict)
+                print(f"\nTotal documents in index: {doc_count}")
+                
+                if doc_count > 0:
+                    print("\nSample documents:")
+                    for doc_id in list(db.docstore._dict.keys())[:2]:
+                        doc = db.docstore._dict[doc_id]
+                        print(f"\nDoc ID: {doc_id}")
+                        print(f"Content preview: {doc.page_content[:200]}...")
+                        print(f"Metadata: {doc.metadata}")
+                else:
+                    print("Warning: Index contains no documents!")
+                    return None
+            except Exception as e:
+                print(f"Error inspecting index: {str(e)}")
+                return None
+        
+
+        
+
         
         print("\nCreating retriever...")
-        # Configure text splitter for chunking
-        from langchain.text_splitter import RecursiveCharacterTextSplitter
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200,  # More overlap for better context
-            separators=["\n\n", "\n", "### ", "**", ".", "!", "?", ",", " ", ""]
-        )
         
         retriever = db.as_retriever(
             search_type="mmr",  # Use MMR for diversity
             search_kwargs={
-                "k": 5,  # Increased number of documents
-                "lambda_mult": 0.8,  # Higher relevance weight
-                "fetch_k": 10,  # Fetch more docs for better selection
-                "score_threshold": 0.1,  # Lower threshold to catch more matches
+                "k": 3,  # Reduced number of documents
+                "lambda_mult": 0.7,  # Balance between relevance and diversity
+                "fetch_k": 5,  # Fetch more docs for selection
+                "score_threshold": 0.5,  # Higher threshold for better relevance
             }
         )
-        # retriever = db.as_retriever(
-        #     search_type="mmr",  # Use MMR for diversity
-        #     search_kwargs={
-        #         "k": 3,  # Reduced number of documents to retrieve
-        #         "lambda_mult": 0.7,  # MMR diversity factor (0=max diversity, 1=max relevance)
-        #         "fetch_k": 5,  # Fetch more docs then select k most diverse
-        #         "score_threshold": 0.7,  # Increased similarity threshold for better relevance
-        #     }
-        # )
-
         
         print("Creating RAG chain...")
         # Custom prompt template for JIRA and SQL content
         from langchain.prompts import PromptTemplate
         custom_prompt = PromptTemplate(
-            template="""You are a helpful assistant that provides information about JIRA issues and SQL database contents.
-            For JIRA issues:
-            - Format issue details clearly with key, summary, status, and description
-            - Include relevant dates and metadata
-            - If multiple issues are found, summarize the common themes
+            template='''You are a helpful assistant that provides accurate and concise answers based on the given context.
             
-            For SQL results:
-            - Format query results in a clear, tabular format
-            - Explain any relevant relationships or patterns
+            Previous conversation:
+            {chat_history}
             
-            Question: {question}
+            Current question: {question}
             
-            Context: {context}
+            Context information:
+            {context}
             
-            Answer: Let me help you with that information.""",
-            input_variables=["context", "question"]
+            Instructions:
+            1. Answer the question using ONLY the provided context
+            2. Keep your response clear and focused
+            3. Include key facts and numbers if available
+            4. If the context doesn't contain enough information, say so
+            5. Do not include source citations or metadata
+            
+            Answer: Based on the available information about {question}:'''
+            ,
+            input_variables=["context", "question", "chat_history"]
         )
         
-        chain = RetrievalQA.from_chain_type(
+        from langchain.chains import ConversationalRetrievalChain
+        from langchain.memory import ConversationBufferMemory
+        
+        memory = ConversationBufferMemory(
+            memory_key="chat_history",
+            output_key="answer",
+            return_messages=True
+        )
+        
+        # Create the ConversationalRetrievalChain
+        chain = ConversationalRetrievalChain.from_llm(
             llm=ChatOpenAI(
                 temperature=0.7,
-                model="gpt-4-turbo-preview",  # Use GPT-4-turbo for larger context
-                max_tokens=4000  # Limit response length
+                model="gpt-4-turbo-preview",
+                max_tokens=4000
             ),
-            chain_type="stuff",  # Use stuff chain type for better context integration
             retriever=retriever,
-            chain_type_kwargs={
-                "prompt": custom_prompt,
-                "document_prompt": PromptTemplate(
-                    template="{page_content}",
-                    input_variables=["page_content"]
-                ),
-                "document_separator": "\n\n"
-            },
+            memory=memory,
             return_source_documents=True,
-            verbose=True  # Add verbose output for debugging
+            combine_docs_chain_kwargs={
+                "prompt": custom_prompt
+            },
+            verbose=True
         )
         
         print("Wrapping chain in RAGTool...")

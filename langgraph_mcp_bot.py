@@ -1,4 +1,5 @@
 import os
+import uuid
 from datetime import datetime
 from dotenv import load_dotenv
 from typing import TypedDict, Optional, List, Dict, Any
@@ -17,6 +18,23 @@ from langgraph.graph import StateGraph, END, START
 
 load_dotenv()
 
+from langchain.schema import HumanMessage, AIMessage, SystemMessage
+from typing import Dict, List
+
+# Simple memory store
+class MemoryStore:
+    _instances: Dict[str, List[dict]] = {}
+    
+    @classmethod
+    def get_memory(cls, thread_id: str) -> List[dict]:
+        return cls._instances.get(thread_id, [])
+    
+    @classmethod
+    def add_memory(cls, thread_id: str, message: dict):
+        if thread_id not in cls._instances:
+            cls._instances[thread_id] = []
+        cls._instances[thread_id].append(message)
+
 class ChatState(TypedDict, total=False):
     input: str
     rag_context: Optional[str]
@@ -28,6 +46,7 @@ class ChatState(TypedDict, total=False):
     final_answer: Optional[str]
     found: bool
     bucket: Optional[str]
+    thread_id: Optional[str]
 
 # Initialize tools
 def get_tools(temperature=0.7):
@@ -104,7 +123,11 @@ def rag_node(state: ChatState) -> ChatState:
     if not rag_tool:
         return state
         
-    response = invoke_tool(rag_tool, state["input"])
+    # Get thread_id from state or generate a new one
+    thread_id = state.get("thread_id") or str(uuid.uuid4())
+    state["thread_id"] = thread_id
+    
+    response = invoke_tool(rag_tool, state["input"], thread_id=thread_id)
     if isinstance(response, dict):
         response_text = response.get('result', '')
     else:
@@ -589,7 +612,7 @@ def create_bot():
     # Set finish point
     graph.set_finish_point("Answer")
     
-    # Compile and return the graph
+    # Compile the graph
     return graph.compile()
 
 # Create and export the app instance
