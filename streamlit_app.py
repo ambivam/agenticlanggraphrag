@@ -44,7 +44,7 @@ def handle_file_upload():
     """Handle file upload in the sidebar with chunked processing for large files."""
     uploaded_file = st.sidebar.file_uploader(
         "Upload a file to include in RAG context (up to 20MB)",
-        type=["txt", "md", "rst", "docx"]
+        type=["txt", "md", "rst", "docx", "pptx", "xlsx", "pdf"]
     )
     
     if uploaded_file:
@@ -67,12 +67,55 @@ def handle_file_upload():
                 status_container.info("📝 Phase 1/2: Reading file...")
                 
                 # Extract text based on file type
-                if uploaded_file.name.endswith('.docx'):
+                file_ext = uploaded_file.name.split('.')[-1].lower()
+                
+                if file_ext == 'docx':
+                    # Word documents
                     from docx import Document
                     import io
                     doc = Document(io.BytesIO(uploaded_file.getvalue()))
                     content = "\n".join([paragraph.text for paragraph in doc.paragraphs])
+                    
+                elif file_ext == 'pdf':
+                    # PDF files
+                    import PyPDF2
+                    import io
+                    pdf_reader = PyPDF2.PdfReader(io.BytesIO(uploaded_file.getvalue()))
+                    content = "\n".join([page.extract_text() for page in pdf_reader.pages])
+                    
+                elif file_ext == 'xlsx':
+                    # Excel files
+                    import pandas as pd
+                    import io
+                    
+                    # Read all sheets
+                    excel_file = io.BytesIO(uploaded_file.getvalue())
+                    all_sheets = pd.read_excel(excel_file, sheet_name=None)
+                    
+                    # Combine all sheets
+                    content_parts = []
+                    for sheet_name, df in all_sheets.items():
+                        content_parts.append(f"Sheet: {sheet_name}")
+                        content_parts.append(df.to_string(index=False))
+                    content = "\n\n".join(content_parts)
+                    
+                elif file_ext == 'pptx':
+                    # PowerPoint files
+                    from pptx import Presentation
+                    import io
+                    
+                    prs = Presentation(io.BytesIO(uploaded_file.getvalue()))
+                    content_parts = []
+                    
+                    for i, slide in enumerate(prs.slides, 1):
+                        content_parts.append(f"\nSlide {i}:")
+                        for shape in slide.shapes:
+                            if hasattr(shape, "text"):
+                                content_parts.append(shape.text)
+                    content = "\n".join(content_parts)
+                    
                 else:
+                    # Text files (txt, md, rst)
                     content = uploaded_file.getvalue().decode('utf-8', errors='ignore')
                 
                 status_container.success(f"✅ Read {uploaded_file.name} ({size_mb:.1f}MB)")
