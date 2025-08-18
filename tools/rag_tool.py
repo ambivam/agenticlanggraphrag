@@ -245,7 +245,7 @@ def get_rag_chain():
         # Custom prompt template for JIRA and SQL content
         from langchain.prompts import PromptTemplate
         custom_prompt = PromptTemplate(
-            template='''You are a helpful assistant that provides accurate and concise answers based on the given context.
+            template='''You are a helpful assistant that provides well-structured answers with clear formatting.
             
             Previous conversation:
             {chat_history}
@@ -256,13 +256,21 @@ def get_rag_chain():
             {context}
             
             Instructions:
-            1. Answer the question using ONLY the provided context
-            2. Keep your response clear and focused
-            3. Include key facts and numbers if available
-            4. If the context doesn't contain enough information, say so
-            5. Do not include source citations or metadata
+            1. Start with a brief introduction paragraph
+            2. Use ## for major sections (e.g. ## Overview)
+            3. Leave a blank line before and after each section heading
+            4. For each section:
+               - Start with a brief section intro if needed
+               - Use bullet points (* ) with a space after the asterisk
+               - Bold (**key terms**) within the text
+               - Use proper line breaks between bullets
+            5. If information is missing, state so clearly in a separate paragraph
             
-            Answer: Based on the available information about {question}:'''
+            Answer: Let me provide information about {question}:
+
+'''
+            
+            
             ,
             input_variables=["context", "question", "chat_history"]
         )
@@ -287,7 +295,11 @@ def get_rag_chain():
             memory=memory,
             return_source_documents=True,
             combine_docs_chain_kwargs={
-                "prompt": custom_prompt
+                "prompt": custom_prompt,
+                "document_prompt": PromptTemplate(
+                    input_variables=["page_content"],
+                    template="{page_content}\n"
+                )
             },
             verbose=True
         )

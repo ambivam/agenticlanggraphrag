@@ -143,7 +143,12 @@ for message in st.session_state.messages:
     role = message["role"]
     content = message["content"]
     with st.chat_message(role):
-        st.markdown(content)
+        # Handle markdown tables properly
+        if '|' in content and '---' in content:
+            # This is likely a table, use st.markdown with unsafe_allow_html
+            st.markdown(content, unsafe_allow_html=True)
+        else:
+            st.markdown(content)
 
 # Chat input
 if prompt := st.chat_input("Enter your message"):
@@ -167,6 +172,11 @@ if prompt := st.chat_input("Enter your message"):
                     st.error("❌ Transfer failed. Please check the logs for details.")
                     st.error(final_answer)
             else:
-                st.markdown(final_answer)
+                # Handle markdown tables properly
+                if '|' in final_answer and '---' in final_answer:
+                    # This is likely a table, use st.markdown with unsafe_allow_html
+                    st.markdown(final_answer, unsafe_allow_html=True)
+                else:
+                    st.markdown(final_answer)
             
             st.session_state.messages.append({"role": "assistant", "content": final_answer})
