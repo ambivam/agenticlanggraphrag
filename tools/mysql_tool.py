@@ -65,27 +65,82 @@ class SQLAgent:
         except Exception as e:
             print(f"Error storing in FAISS: {str(e)}")
     
+    def _get_table_schema(self, db, table_name: str) -> dict:
+        """Get schema information for a table."""
+        try:
+            schema = db.run(f"DESCRIBE {table_name};")
+            if isinstance(schema, str):
+                columns = [r.strip("(',)").split(',') for r in schema.strip('[]').split('), (')]
+            else:
+                columns = [list(r) for r in schema]
+            return {
+                'columns': columns,
+                'primary_key': next((col[0] for col in columns if 'PRI' in str(col)), None)
+            }
+        except Exception:
+            return {'columns': [], 'primary_key': None}
+
+    def _format_sql_table_list(self, db, tables: list) -> dict:
+        """Format SQL table list with metadata for RAG storage."""
+        table_info = []
+        for table in tables:
+            schema = self._get_table_schema(db, table)
+            table_info.append({
+                'name': table,
+                'schema': schema,
+                'row_count': db.run(f"SELECT COUNT(*) FROM {table};")[0][0]
+            })
+
+        # Create a structured table format
+        table_data = {
+            'headers': ['Table Name', 'Columns', 'Row Count'],
+            'rows': [[t['name'], len(t['schema']['columns']), t['row_count']] for t in table_info],
+            'metadata': {
+                'total_tables': len(tables),
+                'timestamp': os.path.getmtime(self.faiss_dir),
+                'content_type': 'table_list',
+                'schema_info': {
+                    'tables': table_info
+                }
+            }
+        }
+        
+        # Format output string
+        output = f"Database contains {len(tables)} tables:\n\n"
+        for i, info in enumerate(table_info, 1):
+            output += f"{i}. {info['name']} ({info['row_count']} rows, {len(info['schema']['columns'])} columns)\n"
+        
+        return {
+            'output': output,
+            'structured_data': table_data
+        }
+
     def invoke(self, input_text):
         # Handle common list queries directly
         input_lower = input_text.lower()
         
-        if 'list' in input_lower and 'country' in input_lower and 'name' in input_lower:
-            # Direct SQL query for all countries
+        if any(phrase in input_lower for phrase in ['list tables', 'show tables', 'what tables']):
+            # Direct SQL query for table list
             db = self.agent_executor.tools[0].db
-            results = db.run('SELECT name FROM country ORDER BY name;')
+            results = db.run('SHOW TABLES;')
             
-            # Format results as a clean numbered list
+            # Extract table names
             if isinstance(results, str):
-                countries = [r.strip("(',)") for r in results.strip('[]').split('), (')]
+                tables = [r.strip("(',)") for r in results.strip('[]').split('), (')]
             else:
-                countries = [r[0] for r in results]
-                
-            output = f"Found {len(countries)} countries in total.\n\nHere is the complete list:\n\n"
-            output += '\n'.join(f"{i+1}. {country}" for i, country in enumerate(countries))
+                tables = [r[0] for r in results]
+            
+            # Format results with metadata
+            formatted_result = self._format_sql_table_list(db, tables)
             
             # Store in FAISS with enhanced metadata
-            self._store_in_faiss(output, "country_list", {"total_count": len(countries)})
-            return {"output": output}
+            self._store_in_faiss(
+                formatted_result['output'],
+                "table_list",
+                formatted_result['structured_data']['metadata']
+            )
+            
+            return formatted_result['output']
         
         # For other queries, use the agent but clean up output
         result = self.agent_executor.invoke(input_text)
@@ -97,10 +152,14 @@ class SQLAgent:
             if 'do you need' in result['output'].lower():
                 result['output'] = result['output'].split('Do you need')[0].strip()
         
-        # Store the result in FAISS if it's valid
-        if isinstance(result, dict) and isinstance(result.get('output'), str):
-            self._store_in_faiss(result['output'], "sql_query_result")
-        return result
+        # Clean up and store the result
+        if isinstance(result, dict):
+            output = result.get('output', '')
+            if isinstance(output, str):
+                # Clean and store in FAISS
+                self._store_in_faiss(output, "sql_query_result")
+                return output
+        return str(result)
 
 def get_mysql_agent():
     try:
@@ -171,7 +230,7 @@ def get_mysql_agent():
             - NEVER add follow-up questions
             - If asked for a sample or limited results, still return ALL results
             - ALWAYS use ORDER BY for consistent results''',
-            verbose=True
+            verbose=False
         )
         
         # Wrap agent in our custom class

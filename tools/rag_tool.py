@@ -142,9 +142,12 @@ def get_rag_chain():
             - Include relevant dates and metadata
             - If multiple issues are found, summarize the common themes
             
-            For SQL results:
-            - Format query results in a clear, tabular format
-            - Explain any relevant relationships or patterns
+            For SQL database information:
+            - For table listings: Present as a clean numbered list
+            - For query results: Format in a structured table format
+            - Always include relevant metadata (row counts, timestamps, etc.)
+            - Preserve any schema information or relationships
+            - Format output consistently for RAG retrieval
             
             Question: {question}
             
