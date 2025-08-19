@@ -160,7 +160,7 @@ def get_rag_chain():
         chain = RetrievalQA.from_chain_type(
             llm=ChatOpenAI(
                 temperature=0.7,
-                model="gpt-4-turbo-preview",  # Use GPT-4-turbo for larger context
+                model="gpt-4.1-nano",  # Use GPT-4-turbo for larger context,gpt-4-turbo-preview
                 max_tokens=4000  # Limit response length
             ),
             chain_type="stuff",  # Use stuff chain type for better context integration
