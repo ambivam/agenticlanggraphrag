@@ -197,12 +197,18 @@ class JIRAMCPTool:
         self.is_jira_tool = True
         self.llm = ChatOpenAI(
             temperature=0.7,
-            model="gpt-4-turbo-preview"
+            model="gpt-4.1-nano"
         )
         self.embeddings = OpenAIEmbeddings()
+        # self.text_splitter = RecursiveCharacterTextSplitter(
+        #     chunk_size=1000,
+        #     chunk_overlap=100,
+        #     separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""]
+        # )
+
         self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=100,
+            chunk_size=1500,
+            chunk_overlap=200,
             separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""]
         )
         
@@ -358,7 +364,7 @@ Query: {query}
                 # For searches, use search_issues()
                 issues = jira.search_issues(
                     state["jql"] or "project = \"" + jira_config.project_key + "\"",
-                    maxResults=10
+                    maxResults=30
                 )
             
             results = []

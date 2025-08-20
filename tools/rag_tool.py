@@ -115,12 +115,21 @@ def get_rag_chain():
         retriever = db.as_retriever(
             search_type="mmr",  # Use MMR for diversity
             search_kwargs={
-                "k": 5,  # Increased number of documents
+                "k": 30,  # Increased number of documents
                 "lambda_mult": 0.8,  # Higher relevance weight
-                "fetch_k": 10,  # Fetch more docs for better selection
-                "score_threshold": 0.1,  # Lower threshold to catch more matches
+                "fetch_k": 50,  # Fetch more docs for better selection
+                "score_threshold": 0.0,  # Lower threshold to catch more matches
             }
         )
+        # retriever = db.as_retriever(
+        #     search_type="mmr",  # Use MMR for diversity
+        #     search_kwargs={
+        #         "k": 5,  # Increased number of documents
+        #         "lambda_mult": 0.8,  # Higher relevance weight
+        #         "fetch_k": 10,  # Fetch more docs for better selection
+        #         "score_threshold": 0.1,  # Lower threshold to catch more matches
+        #     }
+        # )
         # retriever = db.as_retriever(
         #     search_type="mmr",  # Use MMR for diversity
         #     search_kwargs={
@@ -138,9 +147,19 @@ def get_rag_chain():
         custom_prompt = PromptTemplate(
             template="""You are a helpful assistant that provides information about JIRA issues and SQL database contents.
             For JIRA issues:
-            - Format issue details clearly with key, summary, status, and description
-            - Include relevant dates and metadata
-            - If multiple issues are found, summarize the common themes
+            When given retrieved JIRA documents, do the following:
+            - Output **all issues** provided in the context without omitting or summarizing any.  
+            - For each issue, format the details clearly with:
+                - **Key**  
+                - **Summary**  
+                - **Status**  
+                - **Description**  
+                - **Created Date / Updated Date**  
+                - **Assignee / Reporter (if available)**  
+
+            - If multiple issues are found, list them **individually in order**.  
+            - Do not summarize or combine issues. Do not skip any issue.  
+            - At the end, provide the **total count of issues retrieved**.  
             
             For SQL database information:
             - For table listings: Present as a clean numbered list
@@ -161,9 +180,9 @@ def get_rag_chain():
             llm=ChatOpenAI(
                 temperature=0.7,
                 model="gpt-4.1-nano",  # Use GPT-4-turbo for larger context,gpt-4-turbo-preview
-                max_tokens=4000  # Limit response length
+                max_tokens=16000  # Limit response length was 4000,8000 before
             ),
-            chain_type="stuff",  # Use stuff chain type for better context integration
+            chain_type="stuff",  # Use stuff chain type for better context integration was stuff before
             retriever=retriever,
             chain_type_kwargs={
                 "prompt": custom_prompt,
