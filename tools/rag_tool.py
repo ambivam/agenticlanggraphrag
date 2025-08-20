@@ -63,8 +63,8 @@ def _build_or_load_faiss_index():
         print(f"Error loading FAISS index: {e}")
         return None
 
-def get_rag_chain():
-    """Get the RAG chain."""
+def get_rag_chain(query_type="kb"):
+    """Get the RAG chain with source filtering (sql_query_result, jira_issue, user_upload)."""
     try:
         print("\n=== Creating RAG Chain ===")
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -111,16 +111,31 @@ def get_rag_chain():
             chunk_overlap=200,  # More overlap for better context
             separators=["\n\n", "\n", "### ", "**", ".", "!", "?", ",", " ", ""]
         )
-        
+
         retriever = db.as_retriever(
-            search_type="mmr",  # Use MMR for diversity
+            search_type="mmr",
             search_kwargs={
-                "k": 30,  # Increased number of documents
-                "lambda_mult": 0.8,  # Higher relevance weight
-                "fetch_k": 50,  # Fetch more docs for better selection
-                "score_threshold": 0.0,  # Lower threshold to catch more matches
+                "k": 10,
+                "fetch_k": 20,
+                "lambda_mult": 0.8,
+                "score_threshold": 0.5,
+                "filter": (lambda metadata: metadata.get("source") == (
+                    "sql_query_result" if query_type == "sql"
+                    else "jira_issue" if query_type == "jira"
+                    else "user_upload"   # default → knowledge base from uploads/S3
+                ))
             }
         )
+        
+        # retriever = db.as_retriever(
+        #     search_type="mmr",  # Use MMR for diversity
+        #     search_kwargs={
+        #         "k": 30,  # Increased number of documents
+        #         "lambda_mult": 0.8,  # Higher relevance weight
+        #         "fetch_k": 50,  # Fetch more docs for better selection
+        #         "score_threshold": 0.0,  # Lower threshold to catch more matches
+        #     }
+        # )
         # retriever = db.as_retriever(
         #     search_type="mmr",  # Use MMR for diversity
         #     search_kwargs={
@@ -146,6 +161,16 @@ def get_rag_chain():
         from langchain.prompts import PromptTemplate
         custom_prompt = PromptTemplate(
             template="""You are a helpful assistant that provides information about JIRA issues and SQL database contents.
+            And You are a strict assistant that returns ONLY information from the retrieved documents.
+            
+            Rules:
+            - For SQL queries: ONLY use context from documents with source=sql_query_result.
+            - For JIRA queries: ONLY use context from documents with source=jira_issue.
+            For Knowledge Base queries: ONLY use context from documents with source=user_upload (or s3_upload).
+            - NEVER mix SQL, JIRA, and Knowledge Base results.
+            - NEVER fabricate values. If no relevant data is found, answer: "No matching data found in the knowledge base."
+            
+            
             For JIRA issues:
             When given retrieved JIRA documents, do the following:
             - Output **all issues** provided in the context without omitting or summarizing any.  

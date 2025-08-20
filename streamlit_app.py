@@ -6,6 +6,7 @@ from tools.s3_tool import ListBucketsTool
 from tools.file_upload import update_faiss_index
 from typing import Dict, Any
 import tempfile
+from tools.rag_tool import get_rag_chain
 
 # Initialize session state
 if 'messages' not in st.session_state:
@@ -276,8 +277,29 @@ if prompt := st.chat_input("Enter your message"):
     # Process with bot
     with st.chat_message("assistant"):
         with st.spinner("Processing..."):
-            response = st.session_state.bot.invoke({"input": prompt})
-            final_answer = response.get("final_answer", "No response generated")
+            # response = st.session_state.bot.invoke({"input": prompt})
+            # final_answer = response.get("final_answer", "No response generated")
+            # Detect if user is asking for SQL or JIRA
+            if "table" in prompt.lower() or "row" in prompt.lower() or "select" in prompt.lower():
+                query_type = "sql"
+            elif "jira" in prompt.lower() or "ticket" in prompt.lower() or "issue" in prompt.lower():
+                query_type = "jira"
+            else:
+                query_type = "kb"
+
+            if st.session_state.module_manager.is_enabled('rag') and query_type:
+                rag_chain = get_rag_chain(query_type=query_type)
+                rag_result = rag_chain.invoke(prompt)
+                if rag_result and isinstance(rag_result, dict):
+                    final_answer = rag_result.get("result", "No matching data found in the knowledge base.")
+                else:
+                    final_answer = "No matching data found in the knowledge base."
+                
+                #final_answer = rag_result.get("result", "No matching data found in the knowledge base.")
+            else:
+                # Fall back to bot
+                response = st.session_state.bot.invoke({"input": prompt})
+                final_answer = response.get("final_answer", "No response generated")
             
             # Check if this was a transfer to RAG operation
             if "transfer" in prompt.lower() and ("rag" in prompt.lower() or "knowledge base" in prompt.lower()):
