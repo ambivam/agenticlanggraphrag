@@ -27,43 +27,82 @@ class SQLAgent:
         self.faiss_dir = os.path.join(base_dir, "faiss_index")
         os.makedirs(self.faiss_dir, exist_ok=True)
     
+    # def _store_in_faiss(self, content, source_type, extra_metadata=None):
+    #     try:
+    #         # Create document
+    #         doc = Document(
+    #             page_content=content,
+    #             metadata={"source": source_type, "timestamp": os.path.getmtime(self.faiss_dir), **(extra_metadata or {})}
+    #         )
+            
+    #         # Split into chunks
+    #         chunks = self.text_splitter.split_documents([doc])
+            
+    #         # Load existing index if it exists
+    #         index_path = os.path.join(self.faiss_dir, "index.faiss")
+    #         if os.path.exists(index_path):
+    #             db = FAISS.load_local(self.faiss_dir, self.embeddings, allow_dangerous_deserialization=True)
+    #             # Set default search parameters
+    #             db.similarity_search_with_score_kwargs = {
+    #                 "k": 10,  # Retrieve more chunks
+    #                 "score_threshold": 0.3  # Lower threshold for better recall
+    #             }
+    #             # Add new chunks to existing index
+    #             db.add_documents(chunks)
+    #         else:
+    #             # Create new index
+    #             db = FAISS.from_documents(chunks, self.embeddings)
+    #         # Set default search parameters
+    #         db.similarity_search_with_score_kwargs = {
+    #             "k": 10,  # Retrieve more chunks
+    #             "score_threshold": 0.5  # Adjust similarity threshold
+    #         }
+            
+    #         # Save updated index
+    #         db.save_local(self.faiss_dir)
+    #         print(f"Stored {len(chunks)} chunks in FAISS from {source_type}")
+            
+    #     except Exception as e:
+    #         print(f"Error storing in FAISS: {str(e)}")
+    
     def _store_in_faiss(self, content, source_type, extra_metadata=None):
         try:
+            # If structured JSON is passed, convert to string for embedding
+            if isinstance(content, dict):
+                content_str = json.dumps(content, ensure_ascii=False, indent=2)
+            else:
+                content_str = str(content)
+
             # Create document
             doc = Document(
-                page_content=content,
-                metadata={"source": source_type, "timestamp": os.path.getmtime(self.faiss_dir), **(extra_metadata or {})}
+                page_content=content_str,
+                metadata={
+                    "source": source_type,
+                    "timestamp": os.path.getmtime(self.faiss_dir),
+                    **(extra_metadata or {})
+                }
             )
-            
+
             # Split into chunks
             chunks = self.text_splitter.split_documents([doc])
-            
+
             # Load existing index if it exists
             index_path = os.path.join(self.faiss_dir, "index.faiss")
             if os.path.exists(index_path):
                 db = FAISS.load_local(self.faiss_dir, self.embeddings, allow_dangerous_deserialization=True)
-                # Set default search parameters
-                db.similarity_search_with_score_kwargs = {
-                    "k": 10,  # Retrieve more chunks
-                    "score_threshold": 0.3  # Lower threshold for better recall
-                }
-                # Add new chunks to existing index
                 db.add_documents(chunks)
             else:
-                # Create new index
                 db = FAISS.from_documents(chunks, self.embeddings)
-            # Set default search parameters
-            db.similarity_search_with_score_kwargs = {
-                "k": 10,  # Retrieve more chunks
-                "score_threshold": 0.5  # Adjust similarity threshold
-            }
-            
+
             # Save updated index
             db.save_local(self.faiss_dir)
             print(f"Stored {len(chunks)} chunks in FAISS from {source_type}")
-            
+
         except Exception as e:
             print(f"Error storing in FAISS: {str(e)}")
+
+    
+    
     
     def _get_table_schema(self, db, table_name: str) -> dict:
         """Get schema information for a table."""
@@ -115,51 +154,90 @@ class SQLAgent:
             'structured_data': table_data
         }
 
+    # def invoke(self, input_text):
+    #     # Handle common list queries directly
+    #     input_lower = input_text.lower()
+        
+    #     if any(phrase in input_lower for phrase in ['list tables', 'show tables', 'what tables']):
+    #         # Direct SQL query for table list
+    #         db = self.agent_executor.tools[0].db
+    #         results = db.run('SHOW TABLES;')
+            
+    #         # Extract table names
+    #         if isinstance(results, str):
+    #             tables = [r.strip("(',)") for r in results.strip('[]').split('), (')]
+    #         else:
+    #             tables = [r[0] for r in results]
+            
+    #         # Format results with metadata
+    #         formatted_result = self._format_sql_table_list(db, tables)
+            
+    #         # Store in FAISS with enhanced metadata
+    #         self._store_in_faiss(
+    #             formatted_result['output'],
+    #             "table_list",
+    #             formatted_result['structured_data']['metadata']
+    #         )
+            
+    #         return formatted_result['output']
+        
+    #     # For other queries, use the agent but clean up output
+    #     result = self.agent_executor.invoke(input_text)
+        
+    #     if isinstance(result, dict) and isinstance(result.get('output'), str):
+    #         # Remove follow-up questions
+    #         if 'would you like' in result['output'].lower():
+    #             result['output'] = result['output'].split('Would you like')[0].strip()
+    #         if 'do you need' in result['output'].lower():
+    #             result['output'] = result['output'].split('Do you need')[0].strip()
+        
+    #     # Clean up and store the result
+    #     if isinstance(result, dict):
+    #         output = result.get('output', '')
+    #         if isinstance(output, str):
+    #             # Clean and store in FAISS
+    #             #self._store_in_faiss(output, "sql_query_result")
+    #             self._store_in_faiss(
+    #             content=output,
+    #             source_type="sql_query_result",
+    #             extra_metadata={"query": input_text}
+    #             )
+    #             return output
+    #     return str(result)
     def invoke(self, input_text):
-        # Handle common list queries directly
-        input_lower = input_text.lower()
-        
-        if any(phrase in input_lower for phrase in ['list tables', 'show tables', 'what tables']):
-            # Direct SQL query for table list
-            db = self.agent_executor.tools[0].db
-            results = db.run('SHOW TABLES;')
-            
-            # Extract table names
-            if isinstance(results, str):
-                tables = [r.strip("(',)") for r in results.strip('[]').split('), (')]
-            else:
-                tables = [r[0] for r in results]
-            
-            # Format results with metadata
-            formatted_result = self._format_sql_table_list(db, tables)
-            
-            # Store in FAISS with enhanced metadata
-            self._store_in_faiss(
-                formatted_result['output'],
-                "table_list",
-                formatted_result['structured_data']['metadata']
-            )
-            
-            return formatted_result['output']
-        
-        # For other queries, use the agent but clean up output
         result = self.agent_executor.invoke(input_text)
-        
-        if isinstance(result, dict) and isinstance(result.get('output'), str):
-            # Remove follow-up questions
-            if 'would you like' in result['output'].lower():
-                result['output'] = result['output'].split('Would you like')[0].strip()
-            if 'do you need' in result['output'].lower():
-                result['output'] = result['output'].split('Do you need')[0].strip()
-        
-        # Clean up and store the result
+
         if isinstance(result, dict):
             output = result.get('output', '')
+
             if isinstance(output, str):
-                # Clean and store in FAISS
-                self._store_in_faiss(output, "sql_query_result")
+                # Clean SQL agent output (remove follow-up questions, etc.)
+                if 'would you like' in output.lower():
+                    output = output.split('Would you like')[0].strip()
+                if 'do you need' in output.lower():
+                    output = output.split('Do you need')[0].strip()
+
+                # Try to extract rows if the agent provided tabular data
+                structured_data = {
+                    "query": input_text,
+                    "raw_output": output,
+                    "metadata": {
+                        "timestamp": os.path.getmtime(self.faiss_dir),
+                        "content_type": "sql_query_result"
+                    }
+                }
+
+                # ✅ Store both raw output and structured JSON in FAISS
+                self._store_in_faiss(
+                    content=structured_data,
+                    source_type="sql_query_result",
+                    extra_metadata=structured_data["metadata"]
+                )
+
                 return output
+
         return str(result)
+
 
 def get_mysql_agent():
     try:
