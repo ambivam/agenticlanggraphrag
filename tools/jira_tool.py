@@ -409,18 +409,40 @@ Query: {query}
     def _extract_and_fetch_link_content(self, description: str) -> str:
         """Extract URLs from description and fetch their content."""
         try:
-            # URL pattern to match http/https URLs
-            url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
-            urls = re.findall(url_pattern, description)
+            urls = []
             
-            if not urls:
+            # Pattern 1: Atlassian smart-link format [URL|URL|smart-link]
+            smart_link_pattern = r'\[([^|]+)\|[^|]+\|smart-link\]'
+            smart_links = re.findall(smart_link_pattern, description)
+            urls.extend(smart_links)
+            
+            # Pattern 2: Standard HTTP/HTTPS URLs
+            url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+            standard_urls = re.findall(url_pattern, description)
+            urls.extend(standard_urls)
+            
+            # Remove duplicates while preserving order
+            seen = set()
+            unique_urls = []
+            for url in urls:
+                if url not in seen:
+                    seen.add(url)
+                    unique_urls.append(url)
+            
+            if not unique_urls:
                 return ""
             
             link_contents = []
-            for url in urls[:3]:  # Limit to first 3 URLs to avoid excessive requests
+            for url in unique_urls[:3]:  # Limit to first 3 URLs to avoid excessive requests
                 try:
                     print(f"Fetching content from: {url}")
-                    content = self._fetch_url_content(url)
+                    
+                    # Check if this is a Confluence URL and use API if possible
+                    if 'atlassian.net/wiki' in url or 'confluence' in url:
+                        content = self._fetch_confluence_content(url)
+                    else:
+                        content = self._fetch_url_content(url)
+                    
                     if content:
                         link_contents.append(f"\n--- Content from {url} ---\n{content}")
                 except Exception as e:
@@ -432,6 +454,272 @@ Query: {query}
         except Exception as e:
             print(f"Error extracting links: {str(e)}")
             return ""
+    
+    def _fetch_confluence_content(self, url: str) -> str:
+        """Fetch content from Confluence using API when possible."""
+        try:
+            # First, try to resolve the short URL to get the actual page ID
+            actual_page_id = self._resolve_confluence_short_url(url)
+            
+            if actual_page_id and jira_config.url and jira_config.username and jira_config.api_token:
+                # Try to use Confluence API with resolved page ID
+                base_url = jira_config.url.replace('/jira', '').rstrip('/')
+                if '/wiki' not in base_url:
+                    confluence_base = f"{base_url}/wiki"
+                else:
+                    confluence_base = base_url
+                api_url = f"{confluence_base}/rest/api/content/{actual_page_id}?expand=body.storage,space,version"
+                
+                auth = (jira_config.username, jira_config.api_token)
+                headers = {'Accept': 'application/json'}
+                
+                print(f"Attempting Confluence API call to: {api_url}")
+                response = requests.get(api_url, auth=auth, headers=headers, timeout=10)
+                
+                print(f"Confluence API response status: {response.status_code}")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    title = data.get('title', 'Unknown Page')
+                    space_name = data.get('space', {}).get('name', 'Unknown Space')
+                    
+                    # Extract content from storage format
+                    storage_content = data.get('body', {}).get('storage', {}).get('value', '')
+                    
+                    if storage_content:
+                        # Parse HTML content from storage format
+                        soup = BeautifulSoup(storage_content, 'html.parser')
+                        
+                        # Remove script and style elements
+                        for script in soup(["script", "style"]):
+                            script.decompose()
+                        
+                        # Get text content
+                        text = soup.get_text()
+                        
+                        # Clean up text
+                        lines = (line.strip() for line in text.splitlines())
+                        chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+                        clean_text = ' '.join(chunk for chunk in chunks if chunk)
+                        
+                        # Limit content length
+                        if len(clean_text) > 2000:
+                            clean_text = clean_text[:2000] + "... [Content truncated]"
+                        
+                        return f"Confluence Page: {title} (Space: {space_name})\n\n{clean_text}"
+                    else:
+                        return f"Confluence Page: {title} (Space: {space_name})\n\nNo content available"
+                else:
+                    print(f"Confluence API failed with status {response.status_code}")
+                    if response.status_code == 404:
+                        return f"Confluence page not found or access denied: {url}"
+                    elif response.status_code == 401:
+                        return f"Authentication failed for Confluence page: {url}"
+                    else:
+                        print(f"Error response: {response.text}")
+            
+            # If API fails, try authenticated web scraping
+            return self._fetch_confluence_web_content(url)
+            
+        except Exception as e:
+            print(f"Error fetching Confluence content: {str(e)}")
+            return f"Error accessing Confluence page: {str(e)}"
+    
+    def _resolve_confluence_short_url(self, url: str) -> Optional[str]:
+        """Resolve Confluence short URL to get actual page ID by following redirects."""
+        try:
+            # Extract short ID from /wiki/x/SHORT_ID format
+            wiki_x_pattern = r'/wiki/x/([A-Za-z0-9]+)'
+            match = re.search(wiki_x_pattern, url)
+            if not match:
+                return None
+            
+            short_id = match.group(1)
+            print(f"Attempting to resolve short URL with ID: {short_id}")
+            
+            if jira_config.url and jira_config.username and jira_config.api_token:
+                base_url = jira_config.url.replace('/jira', '').rstrip('/')
+                confluence_base = f"{base_url}/wiki"
+                auth = (jira_config.username, jira_config.api_token)
+                headers = {'Accept': 'application/json'}
+                
+                # Method 1: Try to follow the redirect to get the actual page URL
+                try:
+                    print(f"Method 1: Following redirect for {url}")
+                    redirect_response = requests.get(url, auth=auth, allow_redirects=True, timeout=10)
+                    final_url = redirect_response.url
+                    print(f"Final URL after redirect: {final_url}")
+                    
+                    # Extract page ID from the final URL
+                    # Pattern: /wiki/spaces/SPACE/pages/PAGE_ID/Page+Title
+                    page_id_pattern = r'/wiki/spaces/[^/]+/pages/(\d+)/'
+                    page_match = re.search(page_id_pattern, final_url)
+                    if page_match:
+                        page_id = page_match.group(1)
+                        print(f"Extracted page ID from redirect: {page_id}")
+                        return page_id
+                except Exception as e:
+                    print(f"Method 1 failed: {str(e)}")
+                
+                # Method 2: Search using CQL with various patterns
+                search_queries = [
+                    f"id={short_id}",
+                    f"key={short_id}",
+                    f"shortlink={short_id}"
+                ]
+                
+                for cql in search_queries:
+                    try:
+                        print(f"Method 2: Searching with CQL: {cql}")
+                        search_url = f"{confluence_base}/rest/api/content/search?cql={cql}"
+                        response = requests.get(search_url, auth=auth, headers=headers, timeout=10)
+                        
+                        if response.status_code == 200:
+                            data = response.json()
+                            results = data.get('results', [])
+                            if results:
+                                page_id = results[0].get('id')
+                                print(f"Found page ID via search: {page_id}")
+                                return page_id
+                    except Exception as e:
+                        print(f"Search with CQL '{cql}' failed: {str(e)}")
+                
+                # Method 3: Try to get all content and search by title
+                try:
+                    print("Method 3: Searching all content")
+                    all_content_url = f"{confluence_base}/rest/api/content?limit=100"
+                    response = requests.get(all_content_url, auth=auth, headers=headers, timeout=10)
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        results = data.get('results', [])
+                        # This is a fallback - in practice, we'd need more specific search
+                        if results:
+                            print(f"Found {len(results)} pages, using first as fallback")
+                            return results[0].get('id')
+                except Exception as e:
+                    print(f"Method 3 failed: {str(e)}")
+            
+            print(f"All resolution methods failed, using short_id as fallback: {short_id}")
+            return short_id  # Fallback to using short_id as page_id
+            
+        except Exception as e:
+            print(f"Error resolving short URL: {str(e)}")
+            return None
+    
+    def _fetch_confluence_web_content(self, url: str) -> str:
+        """Fetch Confluence content using authenticated web scraping."""
+        try:
+            print(f"Attempting authenticated web scraping of: {url}")
+            
+            # Use session with authentication
+            session = requests.Session()
+            
+            # Set headers to mimic browser
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+            }
+            session.headers.update(headers)
+            
+            # Try with basic auth
+            if jira_config.username and jira_config.api_token:
+                session.auth = (jira_config.username, jira_config.api_token)
+            
+            # Follow redirects to get the actual page
+            response = session.get(url, timeout=15, verify=False, allow_redirects=True)
+            print(f"Web scraping response status: {response.status_code}")
+            print(f"Final URL after redirects: {response.url}")
+            
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                
+                # Try multiple selectors for Confluence content
+                content_selectors = [
+                    {'id': 'main-content'},
+                    {'class': 'wiki-content'},
+                    {'class': 'page-content'},
+                    {'id': 'content'},
+                    {'class': 'confluence-content'},
+                    {'class': 'aui-page-panel-content'}
+                ]
+                
+                content_div = None
+                for selector in content_selectors:
+                    content_div = soup.find('div', selector)
+                    if content_div:
+                        print(f"Found content using selector: {selector}")
+                        break
+                
+                if content_div:
+                    # Remove unwanted elements
+                    for unwanted in content_div(['script', 'style', 'nav', 'header', 'footer', 'aside']):
+                        unwanted.decompose()
+                    
+                    # Try to get the page title
+                    title_elem = soup.find('title') or soup.find('h1')
+                    title = title_elem.get_text().strip() if title_elem else "Unknown Page"
+                    
+                    text = content_div.get_text()
+                else:
+                    # Fallback: try to extract from body
+                    body = soup.find('body')
+                    if body:
+                        # Remove unwanted elements
+                        for unwanted in body(['script', 'style', 'nav', 'header', 'footer', 'aside']):
+                            unwanted.decompose()
+                        text = body.get_text()
+                        title = "Confluence Page"
+                    else:
+                        text = soup.get_text()
+                        title = "Confluence Page"
+                
+                # Clean up text
+                lines = (line.strip() for line in text.splitlines())
+                chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+                clean_text = ' '.join(chunk for chunk in chunks if chunk)
+                
+                # Remove common Confluence UI text
+                ui_text_to_remove = [
+                    "Skip to main content",
+                    "Atlassian",
+                    "Log in",
+                    "Sign up",
+                    "Dashboard",
+                    "People",
+                    "Apps",
+                    "Create",
+                    "Help"
+                ]
+                
+                for ui_text in ui_text_to_remove:
+                    clean_text = clean_text.replace(ui_text, "")
+                
+                # Limit content length
+                if len(clean_text) > 2000:
+                    clean_text = clean_text[:2000] + "... [Content truncated]"
+                
+                if clean_text.strip():
+                    return f"Confluence Page: {title}\n\n{clean_text}"
+                else:
+                    return f"Confluence Page: {title}\n\nNo readable content found"
+                    
+            elif response.status_code == 401:
+                return "Authentication failed - please check JIRA credentials"
+            elif response.status_code == 403:
+                return "Access forbidden - insufficient permissions for this page"
+            elif response.status_code == 404:
+                return "Page not found - the page may have been moved or deleted"
+            else:
+                return f"Unable to access page (Status: {response.status_code})"
+                
+        except Exception as e:
+            print(f"Web scraping error: {str(e)}")
+            return f"Error accessing page: {str(e)}"
     
     def _fetch_url_content(self, url: str) -> str:
         """Fetch and extract text content from a URL."""
