@@ -503,8 +503,8 @@ Query: {query}
                         clean_text = ' '.join(chunk for chunk in chunks if chunk)
                         
                         # Limit content length
-                        if len(clean_text) > 8000:
-                            clean_text = clean_text[:8000] + "... [Content truncated]"
+                        if len(clean_text) > 12000:
+                            clean_text = clean_text[:12000] + "... [Content truncated]"
                         
                         return f"Confluence Page: {title} (Space: {space_name})\n\n{clean_text}"
                     else:
@@ -700,8 +700,8 @@ Query: {query}
                     clean_text = clean_text.replace(ui_text, "")
                 
                 # Limit content length
-                if len(clean_text) > 8000:
-                    clean_text = clean_text[:8000] + "... [Content truncated]"
+                if len(clean_text) > 12000:
+                    clean_text = clean_text[:12000] + "... [Content truncated]"
                 
                 if clean_text.strip():
                     return f"Confluence Page: {title}\n\n{clean_text}"
@@ -749,8 +749,8 @@ Query: {query}
             text = ' '.join(chunk for chunk in chunks if chunk)
             
             # Limit content length
-            if len(text) > 8000:
-                text = text[:8000] + "... [Content truncated]"
+            if len(text) > 12000:
+                text = text[:12000] + "... [Content truncated]"
             
             return text
             
