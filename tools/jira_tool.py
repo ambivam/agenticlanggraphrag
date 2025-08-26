@@ -5,8 +5,12 @@ from jira import JIRA
 import os
 import json
 import traceback
+import re
+import requests
 from pathlib import Path
 from dotenv import load_dotenv
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin, urlparse
 
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
@@ -369,17 +373,25 @@ Query: {query}
             
             results = []
             for issue in issues:
+                description = issue.fields.description or ""
+                
+                # Extract and fetch link content if description exists
+                link_content = ""
+                if description:
+                    link_content = self._extract_and_fetch_link_content(description)
+                
                 issue_dict = {
                     "key": issue.key,
                     "summary": issue.fields.summary,
                     "status": str(issue.fields.status),
                     "created": str(issue.fields.created),
                     "updated": str(issue.fields.updated),
-                    "description": issue.fields.description or ""
+                    "description": description,
+                    "link_content": link_content
                 }
                 results.append(issue_dict)
                 
-                # Store in FAISS
+                # Store in FAISS with link content
                 self._store_in_faiss(issue_dict)
             
             return {
@@ -394,16 +406,85 @@ Query: {query}
             traceback.print_exc()
             return {"query": state["query"], "error": f"Failed to execute query: {str(e)}"}
             
+    def _extract_and_fetch_link_content(self, description: str) -> str:
+        """Extract URLs from description and fetch their content."""
+        try:
+            # URL pattern to match http/https URLs
+            url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+            urls = re.findall(url_pattern, description)
+            
+            if not urls:
+                return ""
+            
+            link_contents = []
+            for url in urls[:3]:  # Limit to first 3 URLs to avoid excessive requests
+                try:
+                    print(f"Fetching content from: {url}")
+                    content = self._fetch_url_content(url)
+                    if content:
+                        link_contents.append(f"\n--- Content from {url} ---\n{content}")
+                except Exception as e:
+                    print(f"Error fetching content from {url}: {str(e)}")
+                    link_contents.append(f"\n--- Error fetching {url} ---\nUnable to retrieve content: {str(e)}")
+            
+            return "\n".join(link_contents) if link_contents else ""
+            
+        except Exception as e:
+            print(f"Error extracting links: {str(e)}")
+            return ""
+    
+    def _fetch_url_content(self, url: str) -> str:
+        """Fetch and extract text content from a URL."""
+        try:
+            # Set headers to mimic a browser request
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+            
+            # Make request with timeout
+            response = requests.get(url, headers=headers, timeout=10, verify=False)
+            response.raise_for_status()
+            
+            # Parse HTML content
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # Remove script and style elements
+            for script in soup(["script", "style"]):
+                script.decompose()
+            
+            # Get text content
+            text = soup.get_text()
+            
+            # Clean up text
+            lines = (line.strip() for line in text.splitlines())
+            chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+            text = ' '.join(chunk for chunk in chunks if chunk)
+            
+            # Limit content length
+            if len(text) > 2000:
+                text = text[:2000] + "... [Content truncated]"
+            
+            return text
+            
+        except requests.RequestException as e:
+            return f"Request error: {str(e)}"
+        except Exception as e:
+            return f"Parsing error: {str(e)}"
+    
     def _store_in_faiss(self, issue_dict):
         """Store JIRA issue in FAISS index."""
         try:
-            # Create document for vectorization
+            # Create document for vectorization including link content
             content = f"JIRA Issue {issue_dict['key']}:\n" \
                      f"Summary: {issue_dict['summary']}\n" \
                      f"Status: {issue_dict['status']}\n" \
                      f"Created: {issue_dict['created']}\n" \
                      f"Updated: {issue_dict['updated']}\n" \
                      f"Description: {issue_dict['description']}"
+            
+            # Add link content if available
+            if issue_dict.get('link_content'):
+                content += f"\n\nLinked Content: {issue_dict['link_content']}"
             
             # Create document with metadata
             doc = Document(
@@ -414,7 +495,8 @@ Query: {query}
                     "status": issue_dict['status'],
                     "created": issue_dict['created'],
                     "updated": issue_dict['updated'],
-                    "description": issue_dict['description']
+                    "description": issue_dict['description'],
+                    "link_content": issue_dict.get('link_content', '')
                 }
             )
             
@@ -507,13 +589,19 @@ Query: {query}
             # Format results
             formatted_results = []
             for issue in result["results"]:
-                formatted_results.append(
+                formatted_issue = (
                     f"### {issue['key']}: {issue['summary']}\n"
                     f"**Status:** {issue['status']}\n"
                     f"**Created:** {issue['created']}\n"
                     f"**Updated:** {issue['updated']}\n"
                     f"**Description:**\n{issue['description']}\n"
                 )
+                
+                # Add link content if available
+                if issue.get('link_content'):
+                    formatted_issue += f"\n**Linked Content:**{issue['link_content']}\n"
+                
+                formatted_results.append(formatted_issue)
             
             # Format response
             if len(formatted_results) > 1:

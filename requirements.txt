@@ -29,3 +29,7 @@ openai>=1.0.0
 
 # AWS integration
 boto3>=1.28.0
+
+# Web scraping for link content extraction
+requests>=2.31.0
+beautifulsoup4>=4.12.0
